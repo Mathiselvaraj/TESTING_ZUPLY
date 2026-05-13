@@ -1,4 +1,36 @@
 package com.cts.mfrp.Zuply.base;
 
+import com.cts.mfrp.Zuply.Utils.ConfigReader;
+import com.cts.mfrp.Zuply.Utils.ExtentManager;
+import com.cts.mfrp.Zuply.auth.AuthManager;
+import io.restassured.RestAssured;
+import io.restassured.config.HttpClientConfig;
+import io.restassured.config.RestAssuredConfig;
+import org.testng.annotations.BeforeSuite;
+
+/**
+ * Common base for all API test classes. Initializes RestAssured, ExtentReports,
+ * and exposes role-scoped JWTs to subclasses via the AuthManager.
+ */
 public class BaseTest {
+
+    @BeforeSuite(alwaysRun = true)
+    public void initSuite() {
+        RestAssured.baseURI = ConfigReader.get("base.url");
+        RestAssured.urlEncodingEnabled = false;
+        RestAssured.config = RestAssuredConfig.config().httpClient(
+                HttpClientConfig.httpClientConfig()
+                        .setParam("http.connection.timeout", ConfigReader.getInt("http.connect.timeout"))
+                        .setParam("http.socket.timeout",     ConfigReader.getInt("http.read.timeout")));
+        ExtentManager.get();
+    }
+
+    protected String buyerToken()  { return AuthManager.buyerToken();  }
+    protected String sellerToken() { return AuthManager.sellerToken(); }
+    protected String adminToken()  { return AuthManager.adminToken();  }
+
+    /** Convenience for ad-hoc Extent logging. */
+    protected void log(String msg) {
+        if (ExtentManager.test() != null) ExtentManager.test().info(msg);
+    }
 }
