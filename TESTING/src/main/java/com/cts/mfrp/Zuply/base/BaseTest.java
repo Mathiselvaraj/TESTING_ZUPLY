@@ -6,6 +6,7 @@ import com.cts.mfrp.Zuply.auth.AuthManager;
 import io.restassured.RestAssured;
 import io.restassured.config.HttpClientConfig;
 import io.restassured.config.RestAssuredConfig;
+import io.restassured.config.SSLConfig;
 import org.testng.annotations.BeforeSuite;
 
 /**
@@ -18,10 +19,14 @@ public class BaseTest {
     public void initSuite() {
         RestAssured.baseURI = ConfigReader.get("base.url");
         RestAssured.urlEncodingEnabled = false;
-        RestAssured.config = RestAssuredConfig.config().httpClient(
-                HttpClientConfig.httpClientConfig()
+        // Compose HTTP + SSL config in one go. Render's cert chain misses an
+        // intermediate in the JVM truststore, so we relax HTTPS validation
+        // explicitly. Acceptable in tests; never use in production code.
+        RestAssured.config = RestAssuredConfig.config()
+                .httpClient(HttpClientConfig.httpClientConfig()
                         .setParam("http.connection.timeout", ConfigReader.getInt("http.connect.timeout"))
-                        .setParam("http.socket.timeout",     ConfigReader.getInt("http.read.timeout")));
+                        .setParam("http.socket.timeout",     ConfigReader.getInt("http.read.timeout")))
+                .sslConfig(SSLConfig.sslConfig().relaxedHTTPSValidation());
         ExtentManager.get();
     }
 
