@@ -29,7 +29,10 @@ public class PaymentTests extends BaseTest {
         addr.put("address", "42, Anna Nagar, Chennai");
         addr.put("city", "Chennai");
         addr.put("pincode", "600040");
-        Map<String, Object> body = Map.of("deliveryAddress", addr, "paymentMethod", "COD");
+        // Use UPI (not COD) so testCreateOrder can create a real Razorpay payment
+        // record, which testStatus then queries. COD orders have no Razorpay record,
+        // so payment-status returns 400.
+        Map<String, Object> body = Map.of("deliveryAddress", addr, "paymentMethod", "UPI");
         Response r = new OrderClient().placeOrder(buyerToken(), body);
         if (r.statusCode() == 200 || r.statusCode() == 201) {
             Object id = ResponseUtils.body(r).get("orderId");
