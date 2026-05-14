@@ -30,7 +30,7 @@ public class CheckoutUiTests extends UiBaseTest {
         // Submit — backend behavior varies; we just verify the click succeeds without
         // landing on the Netlify 404 shell.
         try { cp.placeOrder(); } catch (Exception ignored) {}
-        try { Thread.sleep(2500); } catch (InterruptedException ignored) {}
+        waitAfterAction();
 
         Assert.assertFalse(driver.getTitle().contains("Page not found"),
                 "Should not land on Netlify's 404 after checkout submit");
@@ -47,7 +47,7 @@ public class CheckoutUiTests extends UiBaseTest {
         cp.fillAddress("John Doe", "9876543210", "123 Main St", "", "600001");
         try { cp.selectPaymentMethod("COD"); } catch (Exception ignored) {}
         try { cp.placeOrder(); } catch (Exception ignored) {}
-        try { Thread.sleep(1500); } catch (InterruptedException ignored) {}
+        waitAfterAction();
 
         // Either still on /checkout, or an inline validation message is visible
         boolean stillOnCheckout = driver.getCurrentUrl().contains("/checkout");
@@ -63,7 +63,7 @@ public class CheckoutUiTests extends UiBaseTest {
                 "//button[contains(translate(., 'ABCDEFGHIJKLMNOPQRSTUVWXYZ', 'abcdefghijklmnopqrstuvwxyz'),'add to cart')]"));
         if (!addBtns.isEmpty()) {
             jsClick(addBtns.get(0));
-            try { Thread.sleep(800); } catch (InterruptedException ignored) {}
+            waitAfterAction();
         }
     }
 }

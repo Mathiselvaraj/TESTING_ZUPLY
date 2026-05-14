@@ -7,7 +7,7 @@ import org.openqa.selenium.WebDriver;
 public class WishlistPage extends BasePage {
 
     private static final By HEADING       = By.xpath("//h1[normalize-space()='My Wishlist']");
-    private static final By ITEMS         = By.cssSelector(".wishlist-item, .wishlist-card, [class*='wishlist-']");
+    private static final By ITEMS         = By.cssSelector(".wish-card");
     private static final By REMOVE_BTNS   = By.xpath("//button[contains(translate(.,'REMOVEDEL','removedel'),'remove')]");
     private static final By ADD_CART_BTNS = By.xpath("//button[contains(translate(.,'ADDTOCART','addtocart'),'add to cart')]");
 
