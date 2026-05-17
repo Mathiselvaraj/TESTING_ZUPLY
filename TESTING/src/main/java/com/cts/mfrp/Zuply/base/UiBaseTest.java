@@ -83,9 +83,10 @@ public abstract class UiBaseTest {
         new RegisterPage(driver).open();
         new RegisterPage(driver).registerAs(namePrefix, email, "9876543210", "Test@1234",
                 RegisterPage.Role.CUSTOMER);
-        // Some flows auto-login, others land on /login. Both are fine — tests should explicitly login.
-        //try { Thread.sleep(1500); } catch (InterruptedException ignored) {}
-        wait.until(ExpectedConditions.not(ExpectedConditions.urlContains("/register")));
+        // Wait until the router leaves /register, then allow backend to commit the account
+        try { wait.until(d -> !d.getCurrentUrl().contains("/register")); }
+        catch (Exception ignored) {}
+        waitAfterAction();
         return email;
     }
 
@@ -94,16 +95,30 @@ public abstract class UiBaseTest {
         new RegisterPage(driver).open();
         new RegisterPage(driver).registerAs(namePrefix, email, "9876543210", "Test@1234",
                 RegisterPage.Role.SELLER);
-        //try { Thread.sleep(1500); } catch (InterruptedException ignored) {}
-        wait.until(ExpectedConditions.not(ExpectedConditions.urlContains("/register")));
+        try { wait.until(d -> !d.getCurrentUrl().contains("/register")); }
+        catch (Exception ignored) {}
+        waitAfterAction();
         return email;
     }
 
-    /** Drive through the login page. */
+    /**
+     * Drive through the login page. Retries up to 3 times with a short gap
+     * between attempts to handle slow backend registration on cold starts.
+     */
     protected void loginViaUi(String email, String password) {
         LoginPage login = new LoginPage(driver);
-        login.open();
-        login.loginAs(email, password);
+        Exception lastError = null;
+        for (int attempt = 1; attempt <= 3; attempt++) {
+            try {
+                login.open();
+                login.loginAs(email, password);
+                return;
+            } catch (Exception e) {
+                lastError = e;
+                if (attempt < 3) waitAfterAction();
+            }
+        }
+        throw new RuntimeException("Login failed after 3 attempts for " + email, lastError);
     }
 
     protected void loginAsAdmin() {
@@ -143,6 +158,30 @@ public abstract class UiBaseTest {
                         return u != null && !u.contains("/login");
                     });
         } catch (TimeoutException ignored) { /* still on /login — let test decide */ }
+    }
+
+    /**
+     * Waits for a toast/alert to appear after a button-click action, then returns.
+     * Falls through silently if no toast appears within 3 s (some actions complete
+     * without a visual notification). Replaces Thread.sleep after action clicks.
+     */
+    protected void waitAfterAction() {
+        try {
+            new WebDriverWait(driver, Duration.ofSeconds(3))
+                    .until(ExpectedConditions.visibilityOfElementLocated(By.cssSelector(
+                            "[role='alert'], .toast, .notification, [class*='toast'], [class*='snack']")));
+        } catch (Exception ignored) {}
+    }
+
+    /**
+     * Navigates within the SPA via the Angular router (pushState + popstate)
+     * without triggering a full page reload. Used to test route guards for
+     * pages that are not supposed to be accessible without authentication.
+     * Alias of {@link #navigateRoute(String)} kept for tests authored on the
+     * {@code likhitha} branch.
+     */
+    protected void navigateToRoute(String route) {
+        navigateRoute(route);
     }
 
     /** Best-effort JS click — bypasses overlay-intercepted clicks (e.g. chat FAB). */

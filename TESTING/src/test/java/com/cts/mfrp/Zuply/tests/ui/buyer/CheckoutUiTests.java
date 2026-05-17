@@ -29,7 +29,7 @@ public class CheckoutUiTests extends UiBaseTest {
         cp.fillAddress("John Doe", "9876543210", "123 Main St", "Chennai", "600001");
         try { cp.selectPaymentMethod("COD"); } catch (Exception ignored) {}
         try { cp.placeOrder(); } catch (Exception ignored) {}
-        try { Thread.sleep(2500); } catch (InterruptedException ignored) {}
+        waitAfterAction();
 
         Assert.assertFalse(driver.getTitle().contains("Page not found"),
                 "Should not land on Netlify's 404 after checkout submit");
@@ -45,7 +45,7 @@ public class CheckoutUiTests extends UiBaseTest {
         cp.fillAddress("John Doe", "9876543210", "123 Main St", "", "600001");
         try { cp.selectPaymentMethod("COD"); } catch (Exception ignored) {}
         try { cp.placeOrder(); } catch (Exception ignored) {}
-        try { Thread.sleep(1500); } catch (InterruptedException ignored) {}
+        waitAfterAction();
 
         boolean stillOnCheckout = driver.getCurrentUrl().contains("/checkout");
         boolean validationShown = driver.getPageSource().toLowerCase()
