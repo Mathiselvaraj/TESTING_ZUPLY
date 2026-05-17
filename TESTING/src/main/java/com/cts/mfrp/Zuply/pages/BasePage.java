@@ -1,4 +1,4 @@
-package com.cts.mfrp.Zuply.pages;
+package com.cts.mfrp.zuply.pages;
 
 import org.openqa.selenium.By;
 import org.openqa.selenium.JavascriptExecutor;
@@ -24,10 +24,12 @@ public abstract class BasePage {
 
     protected final WebDriver driver;
     protected final WebDriverWait wait;
+    protected final WebDriverWait longWait;
 
     protected BasePage(WebDriver driver) {
         this.driver = driver;
         this.wait = new WebDriverWait(driver, Duration.ofSeconds(10));
+        this.longWait = new WebDriverWait(driver, Duration.ofSeconds(20));
     }
 
     /** Subclasses declare the route they live at (e.g. "/login", "/admin/dashboard"). */
@@ -92,6 +94,12 @@ public abstract class BasePage {
     }
 
     protected String text(By by) { return waitVisible(by).getText().trim(); }
+
+    /** True when at least one element matching {@code by} is in the DOM (no wait). */
+    public boolean exists(By by) { return !driver.findElements(by).isEmpty(); }
+
+    /** Count of elements currently matching {@code by} (no wait). */
+    public int count(By by) { return driver.findElements(by).size(); }
 
     public String currentUrl() { return driver.getCurrentUrl(); }
     public String title() { return driver.getTitle(); }

@@ -1,7 +1,8 @@
-package com.cts.mfrp.Zuply.tests.ui;
+package com.cts.mfrp.zuply.tests.ui.buyer;
 
-import com.cts.mfrp.Zuply.pages.ProductsPage;
-import org.openqa.selenium.By;
+
+import com.cts.mfrp.zuply.base.UiBaseTest;
+import com.cts.mfrp.zuply.pages.ProductsPage;
 import org.testng.Assert;
 import org.testng.annotations.Test;
 
@@ -16,9 +17,7 @@ public class ProductSearchUiTests extends UiBaseTest {
         page.search("rice");
         try { Thread.sleep(1500); } catch (InterruptedException ignored) {}
 
-        // Search should at least keep us on /products
         Assert.assertTrue(driver.getCurrentUrl().contains("/products"));
-        // Result count is data-dependent; assert no Netlify 404 and that the heading is intact
         Assert.assertTrue(page.isLoaded(), "Products page heading should remain after search");
     }
 
@@ -42,16 +41,13 @@ public class ProductSearchUiTests extends UiBaseTest {
         ProductsPage page = new ProductsPage(driver);
         page.open();
 
-        // The dropdown options used by the SPA (FRD §2.3): price asc/desc, distance, popularity.
-        // The exact visible-text labels may differ; we just verify the dropdown exists and
-        // selecting an option does not break the page.
-        Assert.assertTrue(driver.findElements(By.cssSelector("select.sort-select")).size() >= 1,
+        Assert.assertTrue(page.hasSortDropdown(),
                 "Sort dropdown should be present on Products page");
 
         try {
             page.sortBy("Price: Low to High");
         } catch (Exception ignored) {
-            // Visible-text label may differ; ignore — purpose of the test is to confirm
+            // Visible-text label may differ; the purpose of the test is to confirm
             // the sort control exists and is interactable.
         }
         Assert.assertTrue(page.isLoaded(), "Products page should remain intact after sort interaction");

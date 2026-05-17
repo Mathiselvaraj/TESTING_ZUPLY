@@ -1,8 +1,9 @@
-package com.cts.mfrp.Zuply.tests.ui;
+package com.cts.mfrp.zuply.tests.ui.buyer;
 
-import com.cts.mfrp.Zuply.pages.CheckoutPage;
-import com.cts.mfrp.Zuply.pages.ProductsPage;
-import org.openqa.selenium.By;
+
+import com.cts.mfrp.zuply.base.UiBaseTest;
+import com.cts.mfrp.zuply.pages.CheckoutPage;
+import com.cts.mfrp.zuply.pages.ProductsPage;
 import org.testng.Assert;
 import org.testng.annotations.BeforeClass;
 import org.testng.annotations.Test;
@@ -21,14 +22,12 @@ public class CheckoutUiTests extends UiBaseTest {
     /** TC015 — Successful checkout with valid delivery address and payment method. */
     @Test(description = "TC015 — ValidCheckout")
     public void tc015_validCheckout() {
-        addOneItemToCart();
+        seedOneItemInCart();
 
         CheckoutPage cp = new CheckoutPage(driver);
         cp.open();
         cp.fillAddress("John Doe", "9876543210", "123 Main St", "Chennai", "600001");
         try { cp.selectPaymentMethod("COD"); } catch (Exception ignored) {}
-        // Submit — backend behavior varies; we just verify the click succeeds without
-        // landing on the Netlify 404 shell.
         try { cp.placeOrder(); } catch (Exception ignored) {}
         try { Thread.sleep(2500); } catch (InterruptedException ignored) {}
 
@@ -39,17 +38,15 @@ public class CheckoutUiTests extends UiBaseTest {
     /** TC016 — Checkout should fail when mandatory fields are missing. */
     @Test(description = "TC016 — CheckoutMissingFields")
     public void tc016_checkoutMissingFields() {
-        addOneItemToCart();
+        seedOneItemInCart();
 
         CheckoutPage cp = new CheckoutPage(driver);
         cp.open();
-        // Leave city empty
         cp.fillAddress("John Doe", "9876543210", "123 Main St", "", "600001");
         try { cp.selectPaymentMethod("COD"); } catch (Exception ignored) {}
         try { cp.placeOrder(); } catch (Exception ignored) {}
         try { Thread.sleep(1500); } catch (InterruptedException ignored) {}
 
-        // Either still on /checkout, or an inline validation message is visible
         boolean stillOnCheckout = driver.getCurrentUrl().contains("/checkout");
         boolean validationShown = driver.getPageSource().toLowerCase()
                 .matches(".*(required|must not be blank|please enter|city).*");
@@ -57,13 +54,12 @@ public class CheckoutUiTests extends UiBaseTest {
                 "Submission with missing city should be rejected; url=" + driver.getCurrentUrl());
     }
 
-    private void addOneItemToCart() {
-        new ProductsPage(driver).open();
-        var addBtns = driver.findElements(By.xpath(
-                "//button[contains(translate(., 'ABCDEFGHIJKLMNOPQRSTUVWXYZ', 'abcdefghijklmnopqrstuvwxyz'),'add to cart')]"));
-        if (!addBtns.isEmpty()) {
-            jsClick(addBtns.get(0));
-            try { Thread.sleep(800); } catch (InterruptedException ignored) {}
+    /** Best-effort cart seed: skip silently if the Products page has no Add buttons. */
+    private void seedOneItemInCart() {
+        ProductsPage products = new ProductsPage(driver);
+        products.open();
+        if (products.hasAddToCartButtons()) {
+            products.addFirstToCart();
         }
     }
 }

@@ -1,9 +1,11 @@
-package com.cts.mfrp.Zuply.tests.ui;
+package com.cts.mfrp.zuply.tests.ui.buyer;
 
-import com.cts.mfrp.Zuply.pages.ProductsPage;
-import com.cts.mfrp.Zuply.pages.WishlistPage;
-import org.openqa.selenium.By;
+
+import com.cts.mfrp.zuply.base.UiBaseTest;
+import com.cts.mfrp.zuply.pages.ProductsPage;
+import com.cts.mfrp.zuply.pages.WishlistPage;
 import org.testng.Assert;
+import org.testng.SkipException;
 import org.testng.annotations.BeforeClass;
 import org.testng.annotations.Test;
 
@@ -21,28 +23,29 @@ public class WishlistUiTests extends UiBaseTest {
     /** TC010 — A logged-in customer can add a product to the wishlist. */
     @Test(description = "TC010 — AddToWishlistLoggedIn")
     public void tc010_addToWishlistLoggedIn() {
-        new ProductsPage(driver).open();
-        // Click the first heart icon on a product card
-        var hearts = driver.findElements(By.cssSelector(".wishlist-icon, .heart-icon, [class*='wishlist']"));
-        if (hearts.isEmpty()) throw new org.testng.SkipException("No wishlist icon found on a product card");
-        jsClick(hearts.get(0));
-        try { Thread.sleep(800); } catch (InterruptedException ignored) {}
+        ProductsPage products = new ProductsPage(driver);
+        products.open();
+        if (!products.hasWishlistIcons()) {
+            throw new SkipException("No wishlist icon found on a product card");
+        }
+        products.addFirstToWishlist();
 
-        new WishlistPage(driver).open();
-        Assert.assertTrue(new WishlistPage(driver).itemCount() >= 1,
+        WishlistPage wl = new WishlistPage(driver);
+        wl.open();
+        Assert.assertTrue(wl.itemCount() >= 1,
                 "Wishlist should contain at least 1 item after add");
     }
 
     /** TC011 — Unauthenticated user attempts to add to wishlist sees the login prompt. */
     @Test(description = "TC011 — WishlistNotLoggedIn")
     public void tc011_wishlistNotLoggedIn() {
-        // Drop the class-level login for this single scenario
         clearSession();
-        new ProductsPage(driver).open();
-        var hearts = driver.findElements(By.cssSelector(".wishlist-icon, .heart-icon, [class*='wishlist']"));
-        if (hearts.isEmpty()) throw new org.testng.SkipException("No wishlist icon found on a product card");
-        jsClick(hearts.get(0));
-        try { Thread.sleep(800); } catch (InterruptedException ignored) {}
+        ProductsPage products = new ProductsPage(driver);
+        products.open();
+        if (!products.hasWishlistIcons()) {
+            throw new SkipException("No wishlist icon found on a product card");
+        }
+        products.addFirstToWishlist();
 
         // FRD: "Please login to add items to your wishlist." OR redirect to /login
         boolean toastShown = driver.getPageSource().toLowerCase().matches(".*please login.*wishlist.*");
@@ -59,18 +62,18 @@ public class WishlistUiTests extends UiBaseTest {
             loginViaUi(buyerEmail, "Test@1234");
         }
 
-        // Seed: add an item to wishlist first
-        new ProductsPage(driver).open();
-        var hearts = driver.findElements(By.cssSelector(".wishlist-icon, .heart-icon, [class*='wishlist']"));
-        if (hearts.isEmpty()) throw new org.testng.SkipException("No wishlist icon found");
-        jsClick(hearts.get(0));
-        try { Thread.sleep(800); } catch (InterruptedException ignored) {}
+        ProductsPage products = new ProductsPage(driver);
+        products.open();
+        if (!products.hasWishlistIcons()) {
+            throw new SkipException("No wishlist icon found");
+        }
+        products.addFirstToWishlist();
 
         WishlistPage wl = new WishlistPage(driver);
         wl.open();
-        if (wl.isEmpty()) throw new org.testng.SkipException("Wishlist seed failed; cannot test move");
+        if (wl.isEmpty()) throw new SkipException("Wishlist seed failed; cannot test move");
         wl.moveFirstToCart();
-        // We just verify the click succeeded and the page didn't crash
-        Assert.assertTrue(driver.getCurrentUrl().contains("/wishlist") || driver.getCurrentUrl().contains("/cart"));
+        Assert.assertTrue(
+                driver.getCurrentUrl().contains("/wishlist") || driver.getCurrentUrl().contains("/cart"));
     }
 }

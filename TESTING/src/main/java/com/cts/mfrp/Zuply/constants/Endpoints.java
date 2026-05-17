@@ -1,4 +1,4 @@
-package com.cts.mfrp.Zuply.constants;
+package com.cts.mfrp.zuply.constants;
 
 public final class Endpoints {
 

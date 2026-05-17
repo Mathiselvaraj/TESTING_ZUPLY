@@ -1,9 +1,9 @@
-package com.cts.mfrp.Zuply.tests.api;
+package com.cts.mfrp.zuply.tests.api;
 
-import com.cts.mfrp.Zuply.Utils.ResponseUtils;
-import com.cts.mfrp.Zuply.Utils.TestDataHelper;
-import com.cts.mfrp.Zuply.base.BaseTest;
-import com.cts.mfrp.Zuply.clients.AuthClient;
+import com.cts.mfrp.zuply.utils.ResponseUtils;
+import com.cts.mfrp.zuply.utils.TestDataHelper;
+import com.cts.mfrp.zuply.base.BaseTest;
+import com.cts.mfrp.zuply.clients.AuthClient;
 import io.restassured.path.json.JsonPath;
 import io.restassured.response.Response;
 import org.testng.Assert;

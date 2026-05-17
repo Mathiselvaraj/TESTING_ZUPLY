@@ -1,7 +1,7 @@
-package com.cts.mfrp.Zuply.clients;
+package com.cts.mfrp.zuply.clients;
 
-import com.cts.mfrp.Zuply.Utils.RequestBuilder;
-import com.cts.mfrp.Zuply.constants.Endpoints;
+import com.cts.mfrp.zuply.utils.RequestBuilder;
+import com.cts.mfrp.zuply.constants.Endpoints;
 import io.restassured.response.Response;
 
 import java.util.Map;

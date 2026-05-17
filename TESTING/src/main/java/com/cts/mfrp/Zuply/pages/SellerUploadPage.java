@@ -1,8 +1,9 @@
-package com.cts.mfrp.Zuply.pages;
+package com.cts.mfrp.zuply.pages;
 
 import org.openqa.selenium.By;
 import org.openqa.selenium.WebDriver;
 import org.openqa.selenium.WebElement;
+import org.openqa.selenium.support.ui.ExpectedConditions;
 import org.openqa.selenium.support.ui.Select;
 
 import java.io.File;
@@ -25,6 +26,8 @@ public class SellerUploadPage extends BasePage {
     private static final By VARIATIONS_INPUT = By.cssSelector("input[type='text'].input[placeholder*='Red, Blue']");
     private static final By SELECTS       = By.cssSelector(".manual-form select.select");
     private static final By SUBMIT_BTN    = By.cssSelector("button.submit-btn");
+    private static final By AI_TAGS       = By.cssSelector(".tag, .chip-tag, [class*='tag-']");
+    private static final By AI_HIGHLIGHTS = By.cssSelector(".highlight, .highlight-item, [class*='highlight']");
 
     public SellerUploadPage(WebDriver driver) { super(driver); }
 
@@ -59,4 +62,43 @@ public class SellerUploadPage extends BasePage {
     public List<WebElement> selects() { return driver.findElements(SELECTS); }
 
     public void submitForReview() { click(SUBMIT_BTN); }
+
+    /** Wait for the Submit-for-Review button to become clickable and return it. */
+    public WebElement waitForSubmitClickable() {
+        return longWait.until(ExpectedConditions.elementToBeClickable(SUBMIT_BTN));
+    }
+
+    /** Wait until the manual-form select count matches {@code expected} and return them. */
+    public List<WebElement> waitForSelectCount(int expected) {
+        return longWait.until(ExpectedConditions.numberOfElementsToBe(SELECTS, expected));
+    }
+
+    /* ------------------------------------------------------------------ */
+    /* AI pipeline accessors                                               */
+    /* ------------------------------------------------------------------ */
+
+    /**
+     * Read the current value of the title input. Returns an empty string when the
+     * AI pipeline hasn't populated it yet, the input isn't rendered, or the
+     * attribute is missing.
+     */
+    public String generatedTitle() {
+        try {
+            String v = driver.findElement(TITLE_INPUT).getAttribute("value");
+            return v == null ? "" : v;
+        } catch (Exception e) {
+            return "";
+        }
+    }
+
+    public int tagCount()       { return count(AI_TAGS); }
+    public int highlightCount() { return count(AI_HIGHLIGHTS); }
+
+    /** Value of the first select dropdown (typically Category). Empty when not populated. */
+    public String firstSelectValue() {
+        List<WebElement> sels = driver.findElements(SELECTS);
+        if (sels.isEmpty()) return "";
+        String v = sels.get(0).getAttribute("value");
+        return v == null ? "" : v;
+    }
 }

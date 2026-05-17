@@ -1,4 +1,4 @@
-package com.cts.mfrp.Zuply.ui;
+package com.cts.mfrp.zuply.utils;
 
 import org.openqa.selenium.By;
 import org.openqa.selenium.JavascriptExecutor;
@@ -23,7 +23,7 @@ import java.util.Set;
  * + every nav link it finds + a list of well-known routes), and dumps the
  * rendered HTML of each page into target/dom-dumps/.
  *
- * Run via: java -cp <classpath> com.cts.mfrp.Zuply.ui.DOMDump
+ * Run via: java -cp <classpath> com.cts.mfrp.zuply.utils.DOMDump
  */
 public class DOMDump {
 

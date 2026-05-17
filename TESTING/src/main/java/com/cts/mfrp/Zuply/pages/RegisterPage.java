@@ -1,4 +1,4 @@
-package com.cts.mfrp.Zuply.pages;
+package com.cts.mfrp.zuply.pages;
 
 import org.openqa.selenium.By;
 import org.openqa.selenium.WebDriver;
@@ -44,4 +44,16 @@ public class RegisterPage extends BasePage {
     }
 
     public void goToLogin() { click(LOGIN_LINK); }
+
+    /**
+     * Wait until the SPA finishes post-register routing — the URL must leave
+     * {@code /register}. After a successful submit the SPA either auto-logs the
+     * user in or redirects to {@code /login}; either way the path changes.
+     */
+    public void waitForRegistrationToComplete() {
+        wait.until(d -> {
+            String url = d.getCurrentUrl();
+            return url != null && !url.contains("/register");
+        });
+    }
 }

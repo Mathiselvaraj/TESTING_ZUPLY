@@ -1,4 +1,4 @@
-package com.cts.mfrp.Zuply.pages;
+package com.cts.mfrp.zuply.pages;
 
 import org.openqa.selenium.By;
 import org.openqa.selenium.WebDriver;
@@ -13,6 +13,7 @@ public class HomePage extends BasePage {
     private static final By PRODUCTS_LINK   = By.cssSelector("a[routerlink='/products'], a[href='/products']");
     private static final By CART_LINK       = By.cssSelector("a[routerlink='/cart'], a[href='/cart']");
     private static final By WISHLIST_LINK   = By.cssSelector("a[routerlink='/wishlist'], a[href='/wishlist']");
+    private static final By SELLERS_LINK    = By.cssSelector("a[routerlink='/sellers'], a[href='/sellers']");
     private static final By BECOME_SELLER   = By.cssSelector("a[routerlink='/become-a-seller'], a[href='/become-a-seller']");
     private static final By CUSTOMER_CARE   = By.cssSelector("a[routerlink='/customer-care'], a[href='/customer-care']");
     private static final By HERO_PRIMARY_BTN = By.cssSelector("button.btn-hero-primary, a.btn-hero-primary");
@@ -46,4 +47,10 @@ public class HomePage extends BasePage {
         type(NEWSLETTER_INPUT, email);
         click(NEWSLETTER_BTN);
     }
+
+    public boolean hasNavBrand()     { return exists(NAV_BRAND); }
+    public boolean hasLoginLink()    { return exists(LOGIN_LINK); }
+    public boolean hasRegisterLink() { return exists(REGISTER_LINK); }
+    public boolean hasProductsLink() { return exists(PRODUCTS_LINK); }
+    public boolean hasSellersLink()  { return exists(SELLERS_LINK); }
 }

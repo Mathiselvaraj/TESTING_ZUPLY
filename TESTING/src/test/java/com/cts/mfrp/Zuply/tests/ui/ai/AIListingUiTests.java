@@ -1,8 +1,10 @@
-package com.cts.mfrp.Zuply.tests.ui;
+package com.cts.mfrp.zuply.tests.ui.ai;
 
-import com.cts.mfrp.Zuply.pages.SellerUploadPage;
-import org.openqa.selenium.By;
+
+import com.cts.mfrp.zuply.base.UiBaseTest;
+import com.cts.mfrp.zuply.pages.SellerUploadPage;
 import org.testng.Assert;
+import org.testng.SkipException;
 import org.testng.annotations.BeforeClass;
 import org.testng.annotations.Test;
 
@@ -41,7 +43,6 @@ public class AIListingUiTests extends UiBaseTest {
         SellerUploadPage page = new SellerUploadPage(driver);
         page.open();
         page.uploadImage(generateJpeg(400, 400));
-        // Wait for processing to start/complete (the SPA displays a progress indicator)
         try { Thread.sleep(5000); } catch (InterruptedException ignored) {}
         Assert.assertTrue(page.isLoaded(), "Upload page should remain loaded during processing");
     }
@@ -53,7 +54,6 @@ public class AIListingUiTests extends UiBaseTest {
         page.open();
         long start = System.currentTimeMillis();
         page.uploadImage(generateJpeg(300, 300));
-        // The processing happens on the backend; we time until UI returns to ready state.
         try { Thread.sleep(5500); } catch (InterruptedException ignored) {}
         long elapsedMs = System.currentTimeMillis() - start;
         Assert.assertTrue(elapsedMs < 30_000,
@@ -68,18 +68,11 @@ public class AIListingUiTests extends UiBaseTest {
         page.uploadImage(generateJpeg(400, 400));
         try { Thread.sleep(15_000); } catch (InterruptedException ignored) {}
 
-        // After the AI pipeline completes, the SPA should populate the title input.
-        String titleValue = "";
-        try {
-            var titleInput = driver.findElement(By.cssSelector("input[type='text'].input[placeholder*='Handmade']"));
-            titleValue = titleInput.getAttribute("value");
-        } catch (Exception ignored) {}
-
-        if (titleValue == null || titleValue.isBlank()) {
-            throw new org.testng.SkipException("AI title not generated (Gemini may be unavailable on this env)");
+        String titleValue = page.generatedTitle();
+        if (titleValue.isBlank()) {
+            throw new SkipException("AI title not generated (Gemini may be unavailable on this env)");
         }
-        Assert.assertFalse(titleValue.isBlank(),
-                "AI-generated product title should be non-empty");
+        Assert.assertFalse(titleValue.isBlank(), "AI-generated product title should be non-empty");
     }
 
     /** TC032 — AI generates 5-10 unique tags. */
@@ -90,10 +83,10 @@ public class AIListingUiTests extends UiBaseTest {
         page.uploadImage(generateJpeg(400, 400));
         try { Thread.sleep(15_000); } catch (InterruptedException ignored) {}
 
-        var tags = driver.findElements(By.cssSelector(".tag, .chip-tag, [class*='tag-']"));
-        if (tags.isEmpty()) throw new org.testng.SkipException("No tags rendered — Gemini may be unavailable");
-        Assert.assertTrue(tags.size() >= 5 && tags.size() <= 10,
-                "Expected 5-10 generated tags, got " + tags.size());
+        int tags = page.tagCount();
+        if (tags == 0) throw new SkipException("No tags rendered — Gemini may be unavailable");
+        Assert.assertTrue(tags >= 5 && tags <= 10,
+                "Expected 5-10 generated tags, got " + tags);
     }
 
     /** TC033 — AI assigns category from the predefined list. */
@@ -104,11 +97,9 @@ public class AIListingUiTests extends UiBaseTest {
         page.uploadImage(generateJpeg(400, 400));
         try { Thread.sleep(15_000); } catch (InterruptedException ignored) {}
 
-        var selects = page.selects();
-        if (selects.isEmpty()) throw new org.testng.SkipException("No category select rendered");
-        // The first select is typically Category; verify it has a non-empty selected value
-        String selectedText = selects.get(0).getAttribute("value");
-        Assert.assertNotNull(selectedText, "Category select should have a value attribute");
+        if (page.selects().isEmpty()) throw new SkipException("No category select rendered");
+        // The first select is typically Category; verify it has a value attribute.
+        Assert.assertNotNull(page.firstSelectValue(), "Category select should have a value attribute");
     }
 
     /** TC034 — AI generates 3-5 highlights for the product. */
@@ -119,10 +110,10 @@ public class AIListingUiTests extends UiBaseTest {
         page.uploadImage(generateJpeg(400, 400));
         try { Thread.sleep(15_000); } catch (InterruptedException ignored) {}
 
-        var highlights = driver.findElements(By.cssSelector(".highlight, .highlight-item, [class*='highlight']"));
-        if (highlights.isEmpty()) throw new org.testng.SkipException("No highlights rendered");
-        Assert.assertTrue(highlights.size() >= 3 && highlights.size() <= 5,
-                "Expected 3-5 highlights, got " + highlights.size());
+        int highlights = page.highlightCount();
+        if (highlights == 0) throw new SkipException("No highlights rendered");
+        Assert.assertTrue(highlights >= 3 && highlights <= 5,
+                "Expected 3-5 highlights, got " + highlights);
     }
 
     /** TC035 — Listing preview displays all generated content. */
@@ -147,7 +138,7 @@ public class AIListingUiTests extends UiBaseTest {
             page.enterTitle("Premium Basmati Rice 1kg");
             page.enterPrice("299");
         } catch (Exception e) {
-            throw new org.testng.SkipException("AI pipeline didn't render editable inputs: " + e.getMessage());
+            throw new SkipException("AI pipeline didn't render editable inputs: " + e.getMessage());
         }
         Assert.assertTrue(page.isLoaded(), "Page should remain usable after edits");
     }
@@ -162,10 +153,10 @@ public class AIListingUiTests extends UiBaseTest {
 
         try { page.submitForReview(); }
         catch (Exception e) {
-            throw new org.testng.SkipException("Submit button not interactable: " + e.getMessage());
+            throw new SkipException("Submit button not interactable: " + e.getMessage());
         }
         try { Thread.sleep(2000); } catch (InterruptedException ignored) {}
-        Assert.assertFalse(driver.getTitle().contains("Page not found"),
+        Assert.assertFalse(page.title().contains("Page not found"),
                 "Publish should not land on Netlify 404");
     }
 
@@ -177,7 +168,6 @@ public class AIListingUiTests extends UiBaseTest {
 
         long start = System.currentTimeMillis();
         page.uploadImage(generateJpeg(400, 400));
-        // Wait for AI pipeline + submit
         try { Thread.sleep(60_000); } catch (InterruptedException ignored) {}
         long elapsed = System.currentTimeMillis() - start;
 

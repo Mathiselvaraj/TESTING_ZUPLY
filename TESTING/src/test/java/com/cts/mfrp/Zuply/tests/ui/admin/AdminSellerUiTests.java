@@ -1,6 +1,8 @@
-package com.cts.mfrp.Zuply.tests.ui;
+package com.cts.mfrp.zuply.tests.ui.admin;
 
-import com.cts.mfrp.Zuply.pages.AdminSellersPage;
+
+import com.cts.mfrp.zuply.base.UiBaseTest;
+import com.cts.mfrp.zuply.pages.AdminSellersPage;
 import org.testng.Assert;
 import org.testng.annotations.BeforeClass;
 import org.testng.annotations.Test;

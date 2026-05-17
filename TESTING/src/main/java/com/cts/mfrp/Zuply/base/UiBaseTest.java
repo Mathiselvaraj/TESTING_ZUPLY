@@ -1,10 +1,11 @@
-package com.cts.mfrp.Zuply.tests.ui;
+package com.cts.mfrp.zuply.base;
 
-import com.cts.mfrp.Zuply.pages.LoginPage;
-import com.cts.mfrp.Zuply.pages.RegisterPage;
-import com.cts.mfrp.Zuply.ui.DriverFactory;
+import com.cts.mfrp.zuply.pages.LoginPage;
+import com.cts.mfrp.zuply.pages.RegisterPage;
+import com.cts.mfrp.zuply.utils.DriverFactory;
 import org.openqa.selenium.By;
 import org.openqa.selenium.JavascriptExecutor;
+import org.openqa.selenium.TimeoutException;
 import org.openqa.selenium.WebDriver;
 import org.openqa.selenium.WebElement;
 import org.openqa.selenium.support.ui.ExpectedConditions;
@@ -107,6 +108,41 @@ public abstract class UiBaseTest {
         loginViaUi(adminEmail(), adminPassword());
     }
 
+    /**
+     * Login wrapper that tolerates SPA quirks after self-registration:
+     *   - The register flow sometimes auto-logs the user in — visiting /login
+     *     then submitting will land us back on /login while the SPA redirects,
+     *     and {@code LoginPage.loginAs()} throws TimeoutException waiting for
+     *     the URL to change.
+     *   - A PENDING (unapproved) seller may briefly stay on /login while the
+     *     SPA processes the response.
+     *
+     * Strategy: if we are already on a {@code /seller/*} or {@code /admin/*}
+     * route, skip login entirely. Otherwise call {@link #loginViaUi} but swallow
+     * a TimeoutException — the next page's {@code open()} will surface the real
+     * failure via its own readyMarker wait.
+     */
+    protected void ensureLoggedIn(String email, String password) {
+        String url = driver.getCurrentUrl();
+        if (url != null && (url.contains("/seller/") || url.contains("/admin/"))) {
+            return;
+        }
+        try {
+            loginViaUi(email, password);
+        } catch (TimeoutException ignored) {
+            // URL didn't leave /login within the LoginPage's wait window.
+            // Continue — downstream page.open() calls will verify state.
+        }
+        // Best-effort: wait briefly for navigation to settle.
+        try {
+            new WebDriverWait(driver, java.time.Duration.ofSeconds(5))
+                    .until(d -> {
+                        String u = d.getCurrentUrl();
+                        return u != null && !u.contains("/login");
+                    });
+        } catch (TimeoutException ignored) { /* still on /login — let test decide */ }
+    }
+
     /** Best-effort JS click — bypasses overlay-intercepted clicks (e.g. chat FAB). */
     protected void jsClick(WebElement el) {
         ((JavascriptExecutor) driver).executeScript(
@@ -114,4 +150,19 @@ public abstract class UiBaseTest {
     }
 
     protected void jsClick(By by) { jsClick(driver.findElement(by)); }
+
+    /**
+     * Navigate the SPA to {@code route} via {@code history.pushState} + a synthetic
+     * popstate event. Used by tests that intentionally attempt routes the current
+     * user isn't authorized for — these tests can't instantiate the target page
+     * object because its {@link com.cts.mfrp.zuply.pages.BasePage#open()} would
+     * wait on a readyMarker that will never appear under unauthorized access.
+     */
+    protected void navigateRoute(String route) {
+        ((JavascriptExecutor) driver).executeScript(
+                "const p = arguments[0];" +
+                "const a = document.querySelector('a[href=\"'+p+'\"], a[routerlink=\"'+p+'\"]');" +
+                "if (a) a.click(); else { history.pushState({}, '', p); window.dispatchEvent(new PopStateEvent('popstate')); }",
+                route);
+    }
 }

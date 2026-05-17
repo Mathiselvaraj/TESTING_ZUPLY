@@ -1,4 +1,4 @@
-package com.cts.mfrp.Zuply.pages;
+package com.cts.mfrp.zuply.pages;
 
 import org.openqa.selenium.By;
 import org.openqa.selenium.WebDriver;

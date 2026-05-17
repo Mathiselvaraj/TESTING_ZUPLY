@@ -1,8 +1,9 @@
-package com.cts.mfrp.Zuply.tests.ui;
+package com.cts.mfrp.zuply.tests.ui.auth;
 
-import com.cts.mfrp.Zuply.pages.LoginPage;
-import com.cts.mfrp.Zuply.pages.RegisterPage;
-import org.openqa.selenium.By;
+
+import com.cts.mfrp.zuply.base.UiBaseTest;
+import com.cts.mfrp.zuply.pages.LoginPage;
+import com.cts.mfrp.zuply.pages.RegisterPage;
 import org.testng.Assert;
 import org.testng.annotations.Test;
 
@@ -22,11 +23,7 @@ public class AuthUiTests extends UiBaseTest {
         String email = "ui.john." + randomSuffix() + "@zuply.in";
         page.registerAs("John Doe", email, "9876543210", "Test@1234", RegisterPage.Role.CUSTOMER);
 
-        // After successful registration the SPA should either auto-login or
-        // route to /login. Either way, the URL must leave /register.
-        wait.until(d -> !d.getCurrentUrl().contains("/register")
-                     || !driver.findElements(By.cssSelector("button.register-btn")).isEmpty()
-                          && driver.getCurrentUrl().contains("/login"));
+        page.waitForRegistrationToComplete();
         Assert.assertFalse(driver.getCurrentUrl().contains("/register"),
                 "Should leave /register after successful submit, was: " + driver.getCurrentUrl());
     }

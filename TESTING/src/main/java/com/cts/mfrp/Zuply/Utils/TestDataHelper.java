@@ -1,6 +1,6 @@
-package com.cts.mfrp.Zuply.Utils;
+package com.cts.mfrp.zuply.utils;
 
-import com.cts.mfrp.Zuply.constants.AppConstants;
+import com.cts.mfrp.zuply.constants.AppConstants;
 
 import java.io.IOException;
 import java.util.UUID;
