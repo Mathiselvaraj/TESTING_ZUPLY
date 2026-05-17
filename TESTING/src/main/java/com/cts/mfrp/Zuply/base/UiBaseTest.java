@@ -84,7 +84,8 @@ public abstract class UiBaseTest {
         new RegisterPage(driver).registerAs(namePrefix, email, "9876543210", "Test@1234",
                 RegisterPage.Role.CUSTOMER);
         // Some flows auto-login, others land on /login. Both are fine — tests should explicitly login.
-        try { Thread.sleep(1500); } catch (InterruptedException ignored) {}
+        //try { Thread.sleep(1500); } catch (InterruptedException ignored) {}
+        wait.until(ExpectedConditions.not(ExpectedConditions.urlContains("/register")));
         return email;
     }
 
@@ -93,7 +94,8 @@ public abstract class UiBaseTest {
         new RegisterPage(driver).open();
         new RegisterPage(driver).registerAs(namePrefix, email, "9876543210", "Test@1234",
                 RegisterPage.Role.SELLER);
-        try { Thread.sleep(1500); } catch (InterruptedException ignored) {}
+        //try { Thread.sleep(1500); } catch (InterruptedException ignored) {}
+        wait.until(ExpectedConditions.not(ExpectedConditions.urlContains("/register")));
         return email;
     }
 
