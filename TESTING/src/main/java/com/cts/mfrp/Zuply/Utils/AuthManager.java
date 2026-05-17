@@ -1,8 +1,8 @@
-package com.cts.mfrp.Zuply.auth;
+package com.cts.mfrp.zuply.utils;
 
-import com.cts.mfrp.Zuply.Utils.ConfigReader;
-import com.cts.mfrp.Zuply.Utils.ResponseUtils;
-import com.cts.mfrp.Zuply.constants.Endpoints;
+import com.cts.mfrp.zuply.utils.ConfigReader;
+import com.cts.mfrp.zuply.utils.ResponseUtils;
+import com.cts.mfrp.zuply.constants.Endpoints;
 import io.restassured.http.ContentType;
 import io.restassured.response.Response;
 

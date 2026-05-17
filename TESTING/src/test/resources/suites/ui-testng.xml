@@ -3,66 +3,66 @@
 <suite name="Zuply UI Suite" verbose="1">
 
     <listeners>
-        <listener class-name="com.cts.mfrp.Zuply.Utils.ExtentReportListener"/>
+        <listener class-name="com.cts.mfrp.zuply.utils.ExtentReportListener"/>
     </listeners>
 
     <!-- Pass headless=false at runtime (-Dheadless=false) to watch tests run. -->
     <parameter name="headless" value="false"/>
 
     <test name="Authentication UI (TC001-TC005)">
-        <classes><class name="com.cts.mfrp.Zuply.tests.ui.AuthUiTests"/></classes>
+        <classes><class name="com.cts.mfrp.zuply.tests.ui.auth.AuthUiTests"/></classes>
     </test>
 
     <test name="Home Page UI (TC006)">
-        <classes><class name="com.cts.mfrp.Zuply.tests.ui.HomePageUiTests"/></classes>
+        <classes><class name="com.cts.mfrp.zuply.tests.ui.buyer.HomePageUiTests"/></classes>
     </test>
 
     <test name="Product Search UI (TC007-TC009)">
-        <classes><class name="com.cts.mfrp.Zuply.tests.ui.ProductSearchUiTests"/></classes>
+        <classes><class name="com.cts.mfrp.zuply.tests.ui.buyer.ProductSearchUiTests"/></classes>
     </test>
 
     <test name="Wishlist UI (TC010-TC012)">
-        <classes><class name="com.cts.mfrp.Zuply.tests.ui.WishlistUiTests"/></classes>
+        <classes><class name="com.cts.mfrp.zuply.tests.ui.buyer.WishlistUiTests"/></classes>
     </test>
 
     <test name="Cart UI (TC013-TC014)">
-        <classes><class name="com.cts.mfrp.Zuply.tests.ui.CartUiTests"/></classes>
+        <classes><class name="com.cts.mfrp.zuply.tests.ui.buyer.CartUiTests"/></classes>
     </test>
 
     <test name="Checkout UI (TC015-TC016)">
-        <classes><class name="com.cts.mfrp.Zuply.tests.ui.CheckoutUiTests"/></classes>
+        <classes><class name="com.cts.mfrp.zuply.tests.ui.buyer.CheckoutUiTests"/></classes>
     </test>
 
     <test name="Order Tracking UI (TC017-TC018)">
-        <classes><class name="com.cts.mfrp.Zuply.tests.ui.OrderTrackingUiTests"/></classes>
+        <classes><class name="com.cts.mfrp.zuply.tests.ui.buyer.OrderTrackingUiTests"/></classes>
     </test>
 
     <test name="Customer Profile UI (TC019)">
-        <classes><class name="com.cts.mfrp.Zuply.tests.ui.CustomerProfileUiTests"/></classes>
+        <classes><class name="com.cts.mfrp.zuply.tests.ui.buyer.CustomerProfileUiTests"/></classes>
     </test>
 
     <test name="Seller Product UI (TC020-TC021)">
-        <classes><class name="com.cts.mfrp.Zuply.tests.ui.SellerProductUiTests"/></classes>
+        <classes><class name="com.cts.mfrp.zuply.tests.ui.seller.SellerProductUiTests"/></classes>
     </test>
 
     <test name="Admin Product UI (TC022-TC023)">
-        <classes><class name="com.cts.mfrp.Zuply.tests.ui.AdminProductUiTests"/></classes>
+        <classes><class name="com.cts.mfrp.zuply.tests.ui.admin.AdminProductUiTests"/></classes>
     </test>
 
     <test name="Admin Seller UI (TC024)">
-        <classes><class name="com.cts.mfrp.Zuply.tests.ui.AdminSellerUiTests"/></classes>
+        <classes><class name="com.cts.mfrp.zuply.tests.ui.admin.AdminSellerUiTests"/></classes>
     </test>
 
     <test name="Image Upload UI (TC025-TC028)">
-        <classes><class name="com.cts.mfrp.Zuply.tests.ui.ImageUploadUiTests"/></classes>
+        <classes><class name="com.cts.mfrp.zuply.tests.ui.seller.ImageUploadUiTests"/></classes>
     </test>
 
     <test name="AI Listing UI (TC029-TC038)">
-        <classes><class name="com.cts.mfrp.Zuply.tests.ui.AIListingUiTests"/></classes>
+        <classes><class name="com.cts.mfrp.zuply.tests.ui.ai.AIListingUiTests"/></classes>
     </test>
 
     <test name="Security UI (TC039)">
-        <classes><class name="com.cts.mfrp.Zuply.tests.ui.SecurityUiTests"/></classes>
+        <classes><class name="com.cts.mfrp.zuply.tests.ui.admin.SecurityUiTests"/></classes>
     </test>
 
 </suite>

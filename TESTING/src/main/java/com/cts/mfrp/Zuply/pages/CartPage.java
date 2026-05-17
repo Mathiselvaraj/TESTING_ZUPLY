@@ -1,4 +1,4 @@
-package com.cts.mfrp.Zuply.pages;
+package com.cts.mfrp.zuply.pages;
 
 import org.openqa.selenium.By;
 import org.openqa.selenium.WebDriver;
@@ -10,6 +10,7 @@ public class CartPage extends BasePage {
     private static final By HEADING      = By.xpath("//h1[normalize-space()='Shopping Cart']");
     private static final By CART_ITEMS   = By.cssSelector(".cart-item, [class*='cart-item']");
     private static final By QTY_INPUTS   = By.cssSelector("input[type='number'], .qty-input");
+    private static final By QTY_PLUS_BTNS = By.xpath("//button[normalize-space()='+'] | //button[contains(@class,'qty-plus')]");
     private static final By REMOVE_BTNS  = By.xpath("//button[contains(translate(.,'REMOVEDEL','removedel'),'remove')]");
     private static final By GRAND_TOTAL  = By.cssSelector(".grand-total, [class*='total']");
     private static final By CHECKOUT_BTN = By.xpath("//button[contains(translate(.,'CHECKOUT','checkout'),'checkout')]");
@@ -39,4 +40,16 @@ public class CartPage extends BasePage {
     }
 
     public void proceedToCheckout() { click(CHECKOUT_BTN); }
+
+    /**
+     * Click the first quantity "+" button if one is present. Returns {@code true}
+     * when the click was issued, {@code false} when the SPA renders no "+" button
+     * (some builds use steppers, others a free-text input).
+     */
+    public boolean incrementFirstQuantity() {
+        if (!exists(QTY_PLUS_BTNS)) return false;
+        click(QTY_PLUS_BTNS);
+        try { Thread.sleep(400); } catch (InterruptedException ignored) { Thread.currentThread().interrupt(); }
+        return true;
+    }
 }

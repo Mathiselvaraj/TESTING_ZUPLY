@@ -1,4 +1,4 @@
-package com.cts.mfrp.Zuply.Utils;
+package com.cts.mfrp.zuply.utils;
 
 import org.testng.IRetryAnalyzer;
 import org.testng.ITestResult;

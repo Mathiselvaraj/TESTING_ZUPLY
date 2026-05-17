@@ -1,7 +1,8 @@
-package com.cts.mfrp.Zuply.pages;
+package com.cts.mfrp.zuply.pages;
 
 import org.openqa.selenium.By;
 import org.openqa.selenium.WebDriver;
+import org.openqa.selenium.support.ui.ExpectedConditions;
 
 /** Public listing of all sellers at {@code /sellers}. */
 public class SellersListingPage extends BasePage {
@@ -10,6 +11,7 @@ public class SellersListingPage extends BasePage {
     private static final By SELLER_CARDS  = By.cssSelector(".seller-card");
     private static final By SELLER_NAMES  = By.cssSelector(".seller-name");
     private static final By GRID          = By.cssSelector(".sellers-grid");
+    private static final By GRID_OR_TABLE = By.cssSelector(".sellers-grid, .sellers-table");
 
     public SellersListingPage(WebDriver driver) { super(driver); }
 
@@ -21,5 +23,10 @@ public class SellersListingPage extends BasePage {
     public String firstSellerName() {
         var els = driver.findElements(SELLER_NAMES);
         return els.isEmpty() ? null : els.get(0).getText().trim();
+    }
+
+    /** Wait for either the grid or table wrapper to be visible — the SPA renders one or the other. */
+    public void waitForGridOrTable() {
+        longWait.until(ExpectedConditions.visibilityOfElementLocated(GRID_OR_TABLE));
     }
 }
