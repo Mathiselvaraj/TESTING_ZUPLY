@@ -1,4 +1,4 @@
-package com.cts.mfrp.zuply.tests.api;
+package com.cts.mfrp.Zuply.tests.api;
 
 import com.cts.mfrp.zuply.utils.ResponseUtils;
 import com.cts.mfrp.zuply.utils.TestDataHelper;
