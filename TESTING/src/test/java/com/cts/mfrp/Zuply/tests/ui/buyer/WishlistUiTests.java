@@ -10,6 +10,7 @@ import org.testng.annotations.BeforeClass;
 import org.testng.annotations.Test;
 
 /** Wishlist — FRD §2.8. Maps to TC010, TC011, TC012 + bug-confirmation TC020, TC021. */
+@Test(groups = {"regression", "ui", "wishlist"})
 public class WishlistUiTests extends UiBaseTest {
 
     private String buyerEmail;

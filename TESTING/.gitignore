@@ -40,3 +40,5 @@ build/
 
 ### Test artifacts ###
 test-output/
+# Screenshots are embedded as base64 in reports/ExtentReport.html (which IS committed)
+reports/screenshots/

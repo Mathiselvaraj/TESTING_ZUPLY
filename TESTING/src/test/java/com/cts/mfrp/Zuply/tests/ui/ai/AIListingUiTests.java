@@ -20,6 +20,20 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.time.Duration;
 
+/**
+ * AI-powered listing pipeline — FRD §2.10 (Product Upload) + §4.2 (AI flow) + §3.1 (perf).
+ * Covers TC029 – TC038. These tests drive the SPA seller upload flow end-to-end:
+ *
+ *   image upload → background processing → Gemini AI generation → preview/edit →
+ *   publish → admin approval → public visibility.
+ *
+ * Several of these depend on Gemini availability + AI Vision API quota; tests will
+ * skip cleanly when the AI pipeline is unreachable rather than failing the suite.
+ *
+ * No Thread.sleep -- all waits are explicit via SellerUploadPage.waitForAiContent
+ * or BasePage.waitForUrlContains.
+ */
+@Test(groups = {"regression", "ui", "ai"})
 public class AIListingUiTests extends UiBaseTest {
 
     private static final Duration UPLOAD_SETTLE = Duration.ofSeconds(10);

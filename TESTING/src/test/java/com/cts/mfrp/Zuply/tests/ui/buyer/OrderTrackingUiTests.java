@@ -9,6 +9,7 @@ import org.testng.annotations.BeforeClass;
 import org.testng.annotations.Test;
 
 /** Order management — FRD §2.6. Maps to TC017 and TC018. */
+@Test(groups = {"regression", "ui", "orders"})
 public class OrderTrackingUiTests extends UiBaseTest {
 
     private String buyerEmail;

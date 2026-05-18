@@ -11,6 +11,7 @@ import org.testng.annotations.Test;
 import java.util.List;
 import java.util.Map;
 
+@Test(groups = {"regression", "api", "admin"})
 public class AdminTests extends BaseTest {
 
     private AdminClient client;

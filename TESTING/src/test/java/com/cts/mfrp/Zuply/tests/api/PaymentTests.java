@@ -13,6 +13,7 @@ import org.testng.annotations.Test;
 import java.util.HashMap;
 import java.util.Map;
 
+@Test(groups = {"regression", "api", "payment"})
 public class PaymentTests extends BaseTest {
 
     private PaymentClient client;
