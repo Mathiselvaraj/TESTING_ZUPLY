@@ -101,6 +101,41 @@ public abstract class BasePage {
     /** Count of elements currently matching {@code by} (no wait). */
     public int count(By by) { return driver.findElements(by).size(); }
 
+    /**
+     * Wait up to {@code timeout} for {@code app-loading-spinner} (or generic spinner
+     * variants) to disappear. Returns immediately if no spinner is present, fails
+     * silently on timeout. Use after filter clicks / API-triggered actions to
+     * replace fixed Thread.sleep waits.
+     */
+    public void waitForSpinnerGone(Duration timeout) {
+        By spinners = By.cssSelector("app-loading-spinner, .spinner, [class*='spinner'], [class*='loading']");
+        try {
+            new WebDriverWait(driver, timeout)
+                    .until(ExpectedConditions.invisibilityOfElementLocated(spinners));
+        } catch (Exception ignored) {}
+    }
+
+    /** Wait up to {@code timeout} for the current URL to contain {@code fragment}. */
+    public boolean waitForUrlContains(String fragment, Duration timeout) {
+        try {
+            new WebDriverWait(driver, timeout).until(ExpectedConditions.urlContains(fragment));
+            return true;
+        } catch (Exception e) {
+            return false;
+        }
+    }
+
+    /** Wait up to {@code timeout} for the current URL to no longer contain {@code fragment}. */
+    public boolean waitForUrlNotContains(String fragment, Duration timeout) {
+        try {
+            new WebDriverWait(driver, timeout)
+                    .until(d -> { String u = d.getCurrentUrl(); return u != null && !u.contains(fragment); });
+            return true;
+        } catch (Exception e) {
+            return false;
+        }
+    }
+
     public String currentUrl() { return driver.getCurrentUrl(); }
     public String title() { return driver.getTitle(); }
 }

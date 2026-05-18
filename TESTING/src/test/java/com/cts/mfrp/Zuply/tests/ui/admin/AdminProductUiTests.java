@@ -7,8 +7,12 @@ import org.testng.Assert;
 import org.testng.annotations.BeforeClass;
 import org.testng.annotations.Test;
 
+import java.time.Duration;
+
 /** Admin product management — FRD §2.11. Maps to TC022 and TC023. */
 public class AdminProductUiTests extends UiBaseTest {
+
+    private static final Duration FILTER_LOAD = Duration.ofSeconds(5);
 
     @BeforeClass(alwaysRun = true, dependsOnMethods = "launchBrowser")
     public void loginAdmin() { loginAsAdmin(); }
@@ -20,13 +24,13 @@ public class AdminProductUiTests extends UiBaseTest {
         page.open();
         try { page.selectFilter(AdminProductsPage.Filter.PENDING); }
         catch (Exception ignored) {}
-        try { Thread.sleep(800); } catch (InterruptedException ignored) {}
+        page.waitForSpinnerGone(FILTER_LOAD);
 
         if (page.rowCount() == 0) {
             throw new org.testng.SkipException("No PENDING products on this env — cannot exercise approval");
         }
         page.approveFirst();
-        try { Thread.sleep(1000); } catch (InterruptedException ignored) {}
+        waitAfterAction();
         Assert.assertTrue(page.isLoaded(), "Admin products page should remain loaded after approve");
     }
 
@@ -37,13 +41,13 @@ public class AdminProductUiTests extends UiBaseTest {
         page.open();
         try { page.selectFilter(AdminProductsPage.Filter.PENDING); }
         catch (Exception ignored) {}
-        try { Thread.sleep(800); } catch (InterruptedException ignored) {}
+        page.waitForSpinnerGone(FILTER_LOAD);
 
         if (page.rowCount() == 0) {
             throw new org.testng.SkipException("No PENDING products on this env — cannot exercise rejection");
         }
         page.rejectFirst();
-        try { Thread.sleep(1000); } catch (InterruptedException ignored) {}
+        waitAfterAction();
         Assert.assertTrue(page.isLoaded(), "Admin products page should remain loaded after reject");
     }
 }

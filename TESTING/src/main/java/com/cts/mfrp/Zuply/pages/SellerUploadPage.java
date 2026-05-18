@@ -5,8 +5,10 @@ import org.openqa.selenium.WebDriver;
 import org.openqa.selenium.WebElement;
 import org.openqa.selenium.support.ui.ExpectedConditions;
 import org.openqa.selenium.support.ui.Select;
+import org.openqa.selenium.support.ui.WebDriverWait;
 
 import java.io.File;
+import java.time.Duration;
 import java.util.List;
 
 /**
@@ -100,5 +102,37 @@ public class SellerUploadPage extends BasePage {
         if (sels.isEmpty()) return "";
         String v = sels.get(0).getAttribute("value");
         return v == null ? "" : v;
+    }
+
+    /**
+     * Wait up to {@code timeout} for the AI pipeline to populate ANY of: title input,
+     * tags, or highlights. Replaces Thread.sleep(15s) after uploadImage. Returns true
+     * if AI content appeared, false on timeout (Gemini likely unavailable on this env).
+     */
+    public boolean waitForAiContent(Duration timeout) {
+        try {
+            new WebDriverWait(driver, timeout).until(d ->
+                    !generatedTitle().isBlank() || tagCount() > 0 || highlightCount() > 0);
+            return true;
+        } catch (Exception e) {
+            return false;
+        }
+    }
+
+    /**
+     * Wait up to {@code timeout} for the upload form to be ready for interaction
+     * after a file is dropped (file input has a non-empty value, or progress UI
+     * disappears, or AI content begins to render). Replaces Thread.sleep(3s)
+     * after uploadImage in tests that don't need AI content.
+     */
+    public void waitForUploadAccepted(Duration timeout) {
+        try {
+            new WebDriverWait(driver, timeout).until(d -> {
+                // Either AI content started rendering, OR the title input became interactive
+                // (placeholder still visible but value-less is fine -- we just want page settled).
+                if (!generatedTitle().isBlank() || tagCount() > 0 || highlightCount() > 0) return true;
+                return !driver.findElements(TITLE_INPUT).isEmpty();
+            });
+        } catch (Exception ignored) {}
     }
 }

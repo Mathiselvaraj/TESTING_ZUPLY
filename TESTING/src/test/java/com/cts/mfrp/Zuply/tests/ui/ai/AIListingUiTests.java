@@ -16,6 +16,7 @@ import java.io.File;
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
+import java.time.Duration;
 
 /**
  * AI-powered listing pipeline — FRD §2.10 (Product Upload) + §4.2 (AI flow) + §3.1 (perf).
@@ -26,8 +27,15 @@ import java.nio.file.Path;
  *
  * Several of these depend on Gemini availability + AI Vision API quota; tests will
  * skip cleanly when the AI pipeline is unreachable rather than failing the suite.
+ *
+ * No Thread.sleep -- all waits are explicit via SellerUploadPage.waitForAiContent
+ * or BasePage.waitForUrlContains.
  */
 public class AIListingUiTests extends UiBaseTest {
+
+    private static final Duration UPLOAD_SETTLE = Duration.ofSeconds(10);
+    private static final Duration AI_CONTENT    = Duration.ofSeconds(30);
+    private static final Duration E2E_LIMIT     = Duration.ofSeconds(90);
 
     private String sellerEmail;
 
@@ -43,7 +51,7 @@ public class AIListingUiTests extends UiBaseTest {
         SellerUploadPage page = new SellerUploadPage(driver);
         page.open();
         page.uploadImage(generateJpeg(400, 400));
-        try { Thread.sleep(5000); } catch (InterruptedException ignored) {}
+        page.waitForUploadAccepted(UPLOAD_SETTLE);
         Assert.assertTrue(page.isLoaded(), "Upload page should remain loaded during processing");
     }
 
@@ -54,25 +62,24 @@ public class AIListingUiTests extends UiBaseTest {
         page.open();
         long start = System.currentTimeMillis();
         page.uploadImage(generateJpeg(300, 300));
-        try { Thread.sleep(5500); } catch (InterruptedException ignored) {}
+        page.waitForUploadAccepted(Duration.ofSeconds(30));
         long elapsedMs = System.currentTimeMillis() - start;
         Assert.assertTrue(elapsedMs < 30_000,
                 "Image processing should complete in under 30s (FRD §3.1 says 5s nominal); was " + elapsedMs + "ms");
     }
 
-    /** TC031 — AI generates relevant content within 3 seconds (FRD §3.1 / §4.2). */
+    /** TC031 — AI generates relevant content within a reasonable window (FRD §3.1 / §4.2). */
     @Test(description = "TC031 — AIContentGeneration")
     public void tc031_aiContentGeneration() throws IOException {
         SellerUploadPage page = new SellerUploadPage(driver);
         page.open();
         page.uploadImage(generateJpeg(400, 400));
-        try { Thread.sleep(15_000); } catch (InterruptedException ignored) {}
-
-        String titleValue = page.generatedTitle();
-        if (titleValue.isBlank()) {
-            throw new SkipException("AI title not generated (Gemini may be unavailable on this env)");
+        if (!page.waitForAiContent(AI_CONTENT)) {
+            throw new SkipException("AI title not generated within "
+                    + AI_CONTENT.toSeconds() + "s (Gemini may be unavailable on this env)");
         }
-        Assert.assertFalse(titleValue.isBlank(), "AI-generated product title should be non-empty");
+        Assert.assertFalse(page.generatedTitle().isBlank(),
+                "AI-generated product title should be non-empty");
     }
 
     /** TC032 — AI generates 5-10 unique tags. */
@@ -81,12 +88,13 @@ public class AIListingUiTests extends UiBaseTest {
         SellerUploadPage page = new SellerUploadPage(driver);
         page.open();
         page.uploadImage(generateJpeg(400, 400));
-        try { Thread.sleep(15_000); } catch (InterruptedException ignored) {}
-
+        if (!page.waitForAiContent(AI_CONTENT)) {
+            throw new SkipException("AI did not render content within "
+                    + AI_CONTENT.toSeconds() + "s — Gemini may be unavailable");
+        }
         int tags = page.tagCount();
         if (tags == 0) throw new SkipException("No tags rendered — Gemini may be unavailable");
-        Assert.assertTrue(tags >= 5 && tags <= 10,
-                "Expected 5-10 generated tags, got " + tags);
+        Assert.assertTrue(tags >= 5 && tags <= 10, "Expected 5-10 generated tags, got " + tags);
     }
 
     /** TC033 — AI assigns category from the predefined list. */
@@ -95,10 +103,8 @@ public class AIListingUiTests extends UiBaseTest {
         SellerUploadPage page = new SellerUploadPage(driver);
         page.open();
         page.uploadImage(generateJpeg(400, 400));
-        try { Thread.sleep(15_000); } catch (InterruptedException ignored) {}
-
+        page.waitForAiContent(AI_CONTENT); // best-effort; the test still asserts on selects below
         if (page.selects().isEmpty()) throw new SkipException("No category select rendered");
-        // The first select is typically Category; verify it has a value attribute.
         Assert.assertNotNull(page.firstSelectValue(), "Category select should have a value attribute");
     }
 
@@ -108,8 +114,10 @@ public class AIListingUiTests extends UiBaseTest {
         SellerUploadPage page = new SellerUploadPage(driver);
         page.open();
         page.uploadImage(generateJpeg(400, 400));
-        try { Thread.sleep(15_000); } catch (InterruptedException ignored) {}
-
+        if (!page.waitForAiContent(AI_CONTENT)) {
+            throw new SkipException("AI did not render content within "
+                    + AI_CONTENT.toSeconds() + "s — Gemini may be unavailable");
+        }
         int highlights = page.highlightCount();
         if (highlights == 0) throw new SkipException("No highlights rendered");
         Assert.assertTrue(highlights >= 3 && highlights <= 5,
@@ -122,7 +130,7 @@ public class AIListingUiTests extends UiBaseTest {
         SellerUploadPage page = new SellerUploadPage(driver);
         page.open();
         page.uploadImage(generateJpeg(400, 400));
-        try { Thread.sleep(15_000); } catch (InterruptedException ignored) {}
+        page.waitForAiContent(AI_CONTENT);
         Assert.assertTrue(page.isLoaded(), "Preview/listing form should be visible");
     }
 
@@ -132,7 +140,7 @@ public class AIListingUiTests extends UiBaseTest {
         SellerUploadPage page = new SellerUploadPage(driver);
         page.open();
         page.uploadImage(generateJpeg(400, 400));
-        try { Thread.sleep(15_000); } catch (InterruptedException ignored) {}
+        page.waitForAiContent(AI_CONTENT);
 
         try {
             page.enterTitle("Premium Basmati Rice 1kg");
@@ -149,18 +157,18 @@ public class AIListingUiTests extends UiBaseTest {
         SellerUploadPage page = new SellerUploadPage(driver);
         page.open();
         page.uploadImage(generateJpeg(400, 400));
-        try { Thread.sleep(15_000); } catch (InterruptedException ignored) {}
+        page.waitForAiContent(AI_CONTENT);
 
         try { page.submitForReview(); }
         catch (Exception e) {
             throw new SkipException("Submit button not interactable: " + e.getMessage());
         }
-        try { Thread.sleep(2000); } catch (InterruptedException ignored) {}
+        waitAfterAction();
         Assert.assertFalse(page.title().contains("Page not found"),
                 "Publish should not land on Netlify 404");
     }
 
-    /** TC038 — Full listing pipeline completes within 60 seconds (FRD §3.1 says 90s). */
+    /** TC038 — Full listing pipeline completes within 90 seconds (FRD §3.1). */
     @Test(description = "TC038 — EndToEndListingTime (perf)")
     public void tc038_endToEndListingTime() throws IOException {
         SellerUploadPage page = new SellerUploadPage(driver);
@@ -168,9 +176,13 @@ public class AIListingUiTests extends UiBaseTest {
 
         long start = System.currentTimeMillis();
         page.uploadImage(generateJpeg(400, 400));
-        try { Thread.sleep(60_000); } catch (InterruptedException ignored) {}
+        boolean ready = page.waitForAiContent(E2E_LIMIT);
         long elapsed = System.currentTimeMillis() - start;
 
+        if (!ready) {
+            throw new SkipException("AI pipeline did not produce content within "
+                    + E2E_LIMIT.toSeconds() + "s — can't measure end-to-end time");
+        }
         Assert.assertTrue(elapsed < 90_000,
                 "Full pipeline should complete in under 90s per FRD §3.1; was " + elapsed + "ms");
     }

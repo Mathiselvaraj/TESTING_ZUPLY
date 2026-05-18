@@ -15,10 +15,13 @@ import java.io.File;
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
+import java.time.Duration;
 import java.util.Random;
 
 /** Image upload — FRD §2.10 (Product Upload) + §3.4 (validation rules). Maps to TC025-TC028. */
 public class ImageUploadUiTests extends UiBaseTest {
+
+    private static final Duration UPLOAD_SETTLE = Duration.ofSeconds(10);
 
     private String sellerEmail;
 
@@ -35,8 +38,7 @@ public class ImageUploadUiTests extends UiBaseTest {
         SellerUploadPage upload = new SellerUploadPage(driver);
         upload.open();
         upload.uploadImage(img);
-        // The hidden file input is set; the SPA processes asynchronously.
-        try { Thread.sleep(3000); } catch (InterruptedException ignored) {}
+        upload.waitForUploadAccepted(UPLOAD_SETTLE);
         Assert.assertFalse(driver.getTitle().contains("Page not found"),
                 "Upload should not crash the page");
     }
@@ -53,7 +55,8 @@ public class ImageUploadUiTests extends UiBaseTest {
         upload.open();
         try { upload.uploadImage(pdf); }
         catch (Exception ignored) { /* the SPA's accept= attr may block this */ }
-        try { Thread.sleep(2000); } catch (InterruptedException ignored) {}
+        // Wait for either the validation toast or a stable page; either resolves quickly.
+        waitAfterAction();
 
         // Expect: either upload was blocked by the input's accept attribute, or
         // the SPA shows an error toast. We just verify the page didn't navigate away.
@@ -74,7 +77,7 @@ public class ImageUploadUiTests extends UiBaseTest {
         upload.open();
         try { upload.uploadImage(big.toFile()); }
         catch (Exception ignored) {}
-        try { Thread.sleep(3000); } catch (InterruptedException ignored) {}
+        upload.waitForUploadAccepted(UPLOAD_SETTLE);
 
         boolean errorShown = driver.getPageSource().toLowerCase()
                 .matches(".*(file size|too large|exceed|10 ?mb).*");
@@ -89,7 +92,7 @@ public class ImageUploadUiTests extends UiBaseTest {
         SellerUploadPage upload = new SellerUploadPage(driver);
         upload.open();
         upload.uploadImage(img);
-        try { Thread.sleep(3000); } catch (InterruptedException ignored) {}
+        upload.waitForUploadAccepted(UPLOAD_SETTLE);
         Assert.assertFalse(driver.getTitle().contains("Page not found"),
                 "PNG upload should not crash the page");
     }
