@@ -10,6 +10,7 @@ import org.testng.annotations.BeforeClass;
 import org.testng.annotations.Test;
 
 /** Shopping cart — FRD §2.4. Maps to TC013, TC014, TC019. */
+@Test(groups = {"regression", "ui", "cart"})
 public class CartUiTests extends UiBaseTest {
 
     private String buyerEmail;

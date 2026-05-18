@@ -9,6 +9,7 @@ import org.testng.annotations.BeforeClass;
 import org.testng.annotations.Test;
 
 /** Checkout & order placement — FRD §2.5. Maps to TC015 and TC016. */
+@Test(groups = {"regression", "ui", "checkout"})
 public class CheckoutUiTests extends UiBaseTest {
 
     private String buyerEmail;

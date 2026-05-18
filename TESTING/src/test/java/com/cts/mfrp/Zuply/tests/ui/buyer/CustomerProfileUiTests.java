@@ -12,6 +12,7 @@ import java.io.File;
 import java.io.IOException;
 
 /** Customer profile — FRD §2.1 (profile update). Maps to TC019. */
+@Test(groups = {"regression", "ui", "profile"})
 public class CustomerProfileUiTests extends UiBaseTest {
 
     private String buyerEmail;

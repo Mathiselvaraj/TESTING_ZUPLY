@@ -14,6 +14,7 @@ import java.util.regex.Pattern;
  * Authentication UI scenarios — FRD §2.1.
  * Maps to test cases TC001 – TC005 in the test-case spreadsheet.
  */
+@Test(groups = {"smoke", "regression", "ui", "auth"})
 public class AuthUiTests extends UiBaseTest {
 
     /** TC001 — Validate successful user registration with all valid inputs. */

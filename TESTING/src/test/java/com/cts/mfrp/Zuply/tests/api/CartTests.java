@@ -15,6 +15,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
+@Test(groups = {"regression", "api", "cart"})
 public class CartTests extends BaseTest {
 
     private CartClient client;

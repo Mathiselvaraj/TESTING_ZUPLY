@@ -10,6 +10,7 @@ import org.testng.annotations.Test;
 import java.time.Duration;
 
 /** Admin product management — FRD §2.11. Maps to TC022 and TC023. */
+@Test(groups = {"regression", "ui", "admin"})
 public class AdminProductUiTests extends UiBaseTest {
 
     private static final Duration FILTER_LOAD = Duration.ofSeconds(5);
