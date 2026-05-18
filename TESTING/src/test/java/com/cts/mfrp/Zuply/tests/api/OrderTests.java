@@ -15,6 +15,7 @@ import java.io.IOException;
 import java.util.HashMap;
 import java.util.Map;
 
+@Test(groups = {"regression", "api", "orders"})
 public class OrderTests extends BaseTest {
 
     private OrderClient orderClient;

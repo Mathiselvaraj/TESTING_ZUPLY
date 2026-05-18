@@ -18,6 +18,7 @@ import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 
+@Test(groups = {"regression", "api", "ai"})
 public class ListingTests extends BaseTest {
 
     private ListingClient client;

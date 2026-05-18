@@ -19,6 +19,7 @@ import java.time.Duration;
 import java.util.Random;
 
 /** Image upload — FRD §2.10 (Product Upload) + §3.4 (validation rules). Maps to TC025-TC028. */
+@Test(groups = {"regression", "ui", "upload"})
 public class ImageUploadUiTests extends UiBaseTest {
 
     private static final Duration UPLOAD_SETTLE = Duration.ofSeconds(10);

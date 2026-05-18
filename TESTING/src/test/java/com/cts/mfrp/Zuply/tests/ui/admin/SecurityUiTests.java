@@ -11,6 +11,7 @@ import org.testng.annotations.Test;
 import java.time.Duration;
 
 /** Role-based access control — FRD §3.2. Maps to TC039. */
+@Test(groups = {"regression", "ui", "security"})
 public class SecurityUiTests extends UiBaseTest {
 
     private static final Duration ROUTE_GUARD = Duration.ofSeconds(5);

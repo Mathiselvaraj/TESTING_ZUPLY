@@ -25,6 +25,7 @@ import java.time.Duration;
  * No Thread.sleep(), no inline selectors, no inline waits — all SPA timing
  * and locator concerns live on the page objects.
  */
+@Test(groups = {"regression", "ui", "seller"})
 public class SellerProductUiTests extends UiBaseTest {
 
     private String sellerEmail;

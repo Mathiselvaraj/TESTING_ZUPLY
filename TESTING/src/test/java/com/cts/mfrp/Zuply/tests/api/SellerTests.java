@@ -14,6 +14,7 @@ import java.io.IOException;
 import java.util.List;
 import java.util.Map;
 
+@Test(groups = {"regression", "api", "seller"})
 public class SellerTests extends BaseTest {
 
     private SellerClient client;

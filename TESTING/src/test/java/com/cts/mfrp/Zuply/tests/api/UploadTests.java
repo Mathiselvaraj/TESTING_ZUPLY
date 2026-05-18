@@ -17,6 +17,7 @@ import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 
+@Test(groups = {"regression", "api", "upload"})
 public class UploadTests extends BaseTest {
 
     private UploadClient client;

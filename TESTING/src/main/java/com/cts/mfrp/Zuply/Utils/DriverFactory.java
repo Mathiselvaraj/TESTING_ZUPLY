@@ -13,6 +13,13 @@ public final class DriverFactory {
 
     private DriverFactory() {}
 
+    /** Returns the driver stored in the current thread, or null if none is set. */
+    public static WebDriver current() { return TL.get(); }
+
+    public static void setDriver(WebDriver d) {
+        if (d == null) TL.remove(); else TL.set(d);
+    }
+
     public static WebDriver get() {
         WebDriver d = TL.get();
         if (d == null) {

@@ -7,6 +7,7 @@ import org.testng.Assert;
 import org.testng.annotations.Test;
 
 /** Home page UI scenarios — FRD §2.2. Maps to TC006. */
+@Test(groups = {"smoke", "regression", "ui", "home"})
 public class HomePageUiTests extends UiBaseTest {
 
     /** TC006 — Validate required elements are displayed on the home page. */

@@ -14,6 +14,7 @@ import java.io.IOException;
 import java.util.HashMap;
 import java.util.Map;
 
+@Test(groups = {"regression", "api", "users"})
 public class UserTests extends BaseTest {
 
     private UserClient client;

@@ -15,6 +15,7 @@ import java.io.IOException;
 import java.util.HashMap;
 import java.util.Map;
 
+@Test(groups = {"smoke", "regression", "api", "auth"})
 public class AuthTests extends BaseTest {
 
     private AuthClient client;

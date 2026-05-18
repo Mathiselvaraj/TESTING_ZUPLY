@@ -31,6 +31,7 @@ import java.time.Duration;
  * No Thread.sleep -- all waits are explicit via SellerUploadPage.waitForAiContent
  * or BasePage.waitForUrlContains.
  */
+@Test(groups = {"regression", "ui", "ai"})
 public class AIListingUiTests extends UiBaseTest {
 
     private static final Duration UPLOAD_SETTLE = Duration.ofSeconds(10);

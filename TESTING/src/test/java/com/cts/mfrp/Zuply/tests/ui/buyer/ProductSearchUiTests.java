@@ -7,6 +7,7 @@ import org.testng.Assert;
 import org.testng.annotations.Test;
 
 /** Product browsing and search — FRD §2.3. Maps to TC007, TC008, TC009. */
+@Test(groups = {"regression", "ui", "search"})
 public class ProductSearchUiTests extends UiBaseTest {
 
     /** TC007 — Validate product search returns relevant results. */

@@ -14,6 +14,7 @@ import org.testng.annotations.Test;
 import java.time.Duration;
 
 /** Admin seller management — FRD §2.11. Maps to TC024. */
+@Test(groups = {"regression", "ui", "admin"})
 public class AdminSellerUiTests extends UiBaseTest {
 
     private static final By SELLERS_HEADING =

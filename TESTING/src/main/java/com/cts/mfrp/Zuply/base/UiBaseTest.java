@@ -43,6 +43,7 @@ public abstract class UiBaseTest {
     @Parameters({"headless"})
     public void launchBrowser(@Optional("true") String headless) {
         driver = DriverFactory.create(Boolean.parseBoolean(headless));
+        DriverFactory.setDriver(driver);
         wait = new WebDriverWait(driver, Duration.ofSeconds(15));
         driver.get(BASE_URL + "/");
         wait.until(ExpectedConditions.presenceOfElementLocated(By.cssSelector("app-root")));
@@ -52,6 +53,7 @@ public abstract class UiBaseTest {
     public void closeBrowser() {
         if (driver != null) {
             try { driver.quit(); } catch (Exception ignored) {}
+            DriverFactory.setDriver(null);
             driver = null;
         }
     }
