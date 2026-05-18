@@ -73,9 +73,16 @@ public abstract class BasePage {
     }
 
     protected void type(By by, String text) {
+//        WebElement el = waitVisible(by);
+//        el.clear();
+//        el.sendKeys(text);
         WebElement el = waitVisible(by);
-        el.clear();
-        el.sendKeys(text);
+        // 1. Select all text (Ctrl + A) and press Backspace to delete it
+        el.sendKeys(org.openqa.selenium.Keys.chord(org.openqa.selenium.Keys.CONTROL, "a"), org.openqa.selenium.Keys.BACK_SPACE);
+        // 2. Type the new text (if any)
+        if (text != null && !text.isEmpty()) {
+            el.sendKeys(text);
+        }
     }
 
     /**
@@ -91,6 +98,11 @@ public abstract class BasePage {
             ((JavascriptExecutor) driver).executeScript(
                     "arguments[0].scrollIntoView({block:'center'}); arguments[0].click();", el);
         }
+    }
+
+    protected void jsClick(WebElement el) {
+        ((JavascriptExecutor) driver).executeScript(
+                "arguments[0].scrollIntoView({block:'center'}); arguments[0].click();", el);
     }
 
     protected String text(By by) { return waitVisible(by).getText().trim(); }
