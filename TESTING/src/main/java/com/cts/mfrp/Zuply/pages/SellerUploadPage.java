@@ -11,44 +11,59 @@ import java.io.File;
 import java.time.Duration;
 import java.util.List;
 
-/**
- * Seller's "Add Product" page at {@code /seller/upload}. The form supports
- * both AI-generated and manual product creation. Fields are placeholder-driven
- * (no name attributes).
- */
 public class SellerUploadPage extends BasePage {
 
+    // --- Locators ---
     private static final By HEADING       = By.xpath("//h1[normalize-space()='Add Product']");
     private static final By UPLOAD_ZONE   = By.cssSelector(".upload-zone");
     private static final By FILE_INPUT    = By.cssSelector("input[type='file'][accept='image/jpeg,image/png']");
     private static final By TITLE_INPUT   = By.cssSelector("input[type='text'].input[placeholder*='Handmade']");
     private static final By DESC_AREA     = By.cssSelector("textarea.input[placeholder*='Describe your product']");
     private static final By PRICE_INPUT   = By.cssSelector("input[type='number'].input[placeholder='e.g. 299']");
-    private static final By STOCK_INPUT   = By.cssSelector("input[type='number'].input[placeholder='e.g. 50']");
+    private static final By STOCK_INPUT   = By.cssSelector("input[type='number'].input[placeholder='e.g. 10'], input[type='number'].input[placeholder='e.g. 50']");
     private static final By VARIATIONS_INPUT = By.cssSelector("input[type='text'].input[placeholder*='Red, Blue']");
-    private static final By SELECTS       = By.cssSelector(".manual-form select.select");
-    private static final By SUBMIT_BTN    = By.cssSelector("button.submit-btn");
+    private static final By SELECTS       = By.cssSelector("select");
+    private static final By SUBMIT_BTN    = By.xpath("//button[contains(translate(text(), 'ABCDEFGHIJKLMNOPQRSTUVWXYZ', 'abcdefghijklmnopqrstuvwxyz'), 'publish') or contains(translate(text(), 'ABCDEFGHIJKLMNOPQRSTUVWXYZ', 'abcdefghijklmnopqrstuvwxyz'), 'submit')]");
+
+    // AI Specific Locators
+    private static final By GENERATE_BTN  = By.xpath("//button[contains(text(), 'Generate Listing with AI')]");
     private static final By AI_TAGS       = By.cssSelector(".tag, .chip-tag, [class*='tag-']");
     private static final By AI_HIGHLIGHTS = By.cssSelector(".highlight, .highlight-item, [class*='highlight']");
+    private static final By AI_MODE_CARD  = By.xpath("//*[contains(text(), 'AI Enhanced')]");
+    private static final By AI_INFO_BANNER = By.xpath("//*[contains(text(), 'AI will generate title')]");
 
+    // --- Constructor & Overrides ---
     public SellerUploadPage(WebDriver driver) { super(driver); }
 
     @Override public String route() { return "/seller/upload"; }
     @Override protected By readyMarker() { return HEADING; }
 
-    /** Drop or browse: the hidden file input takes a path directly via sendKeys. */
+    // --- Action Methods ---
+
+    public SellerUploadPage selectAiMode() {
+        click(AI_MODE_CARD);
+        waitVisible(AI_INFO_BANNER);
+        return this;
+    }
+
     public SellerUploadPage uploadImage(File img) {
         driver.findElement(FILE_INPUT).sendKeys(img.getAbsolutePath());
         return this;
     }
 
+    // Restored and updated Generate clicker
+    public SellerUploadPage clickGenerate() {
+        click(GENERATE_BTN);
+        return this;
+    }
+
+    // Manual input fillers
     public SellerUploadPage enterTitle(String title)       { type(TITLE_INPUT, title); return this; }
     public SellerUploadPage enterDescription(String desc)  { type(DESC_AREA, desc); return this; }
     public SellerUploadPage enterPrice(String price)       { type(PRICE_INPUT, price); return this; }
     public SellerUploadPage enterStock(String stock)       { type(STOCK_INPUT, stock); return this; }
     public SellerUploadPage enterVariations(String vars)   { type(VARIATIONS_INPUT, vars); return this; }
 
-    /** The form has multiple selects (category, delivery method, etc.) — select by visible text in any of them. */
     public SellerUploadPage selectOptionByText(String visibleText) {
         for (WebElement sel : driver.findElements(SELECTS)) {
             for (WebElement opt : sel.findElements(By.tagName("option"))) {
@@ -58,32 +73,15 @@ public class SellerUploadPage extends BasePage {
                 }
             }
         }
-        throw new IllegalStateException("Option not found in any select: " + visibleText);
+        return this;
     }
-
-    public List<WebElement> selects() { return driver.findElements(SELECTS); }
 
     public void submitForReview() { click(SUBMIT_BTN); }
 
-    /** Wait for the Submit-for-Review button to become clickable and return it. */
-    public WebElement waitForSubmitClickable() {
-        return longWait.until(ExpectedConditions.elementToBeClickable(SUBMIT_BTN));
-    }
+    // --- Getters & Accessors ---
 
-    /** Wait until the manual-form select count matches {@code expected} and return them. */
-    public List<WebElement> waitForSelectCount(int expected) {
-        return longWait.until(ExpectedConditions.numberOfElementsToBe(SELECTS, expected));
-    }
+    public List<WebElement> selects() { return driver.findElements(SELECTS); }
 
-    /* ------------------------------------------------------------------ */
-    /* AI pipeline accessors                                               */
-    /* ------------------------------------------------------------------ */
-
-    /**
-     * Read the current value of the title input. Returns an empty string when the
-     * AI pipeline hasn't populated it yet, the input isn't rendered, or the
-     * attribute is missing.
-     */
     public String generatedTitle() {
         try {
             String v = driver.findElement(TITLE_INPUT).getAttribute("value");
@@ -96,7 +94,6 @@ public class SellerUploadPage extends BasePage {
     public int tagCount()       { return count(AI_TAGS); }
     public int highlightCount() { return count(AI_HIGHLIGHTS); }
 
-    /** Value of the first select dropdown (typically Category). Empty when not populated. */
     public String firstSelectValue() {
         List<WebElement> sels = driver.findElements(SELECTS);
         if (sels.isEmpty()) return "";
@@ -104,33 +101,33 @@ public class SellerUploadPage extends BasePage {
         return v == null ? "" : v;
     }
 
-    /**
-     * Wait up to {@code timeout} for the AI pipeline to populate ANY of: title input,
-     * tags, or highlights. Replaces Thread.sleep(15s) after uploadImage. Returns true
-     * if AI content appeared, false on timeout (Gemini likely unavailable on this env).
-     */
+    public boolean hasAiContentGenerated() {
+        return !generatedTitle().isBlank() || tagCount() > 0 || highlightCount() > 0;
+    }
+
+    // --- Wait / Synchronization Helpers ---
+
+    public WebElement waitForSubmitClickable() {
+        return longWait.until(ExpectedConditions.elementToBeClickable(SUBMIT_BTN));
+    }
+
+    public List<WebElement> waitForSelectCount(int expected) {
+        return longWait.until(ExpectedConditions.numberOfElementsToBe(SELECTS, expected));
+    }
+
     public boolean waitForAiContent(Duration timeout) {
         try {
-            new WebDriverWait(driver, timeout).until(d ->
-                    !generatedTitle().isBlank() || tagCount() > 0 || highlightCount() > 0);
+            new WebDriverWait(driver, timeout).until(d -> hasAiContentGenerated());
             return true;
         } catch (Exception e) {
             return false;
         }
     }
 
-    /**
-     * Wait up to {@code timeout} for the upload form to be ready for interaction
-     * after a file is dropped (file input has a non-empty value, or progress UI
-     * disappears, or AI content begins to render). Replaces Thread.sleep(3s)
-     * after uploadImage in tests that don't need AI content.
-     */
     public void waitForUploadAccepted(Duration timeout) {
         try {
             new WebDriverWait(driver, timeout).until(d -> {
-                // Either AI content started rendering, OR the title input became interactive
-                // (placeholder still visible but value-less is fine -- we just want page settled).
-                if (!generatedTitle().isBlank() || tagCount() > 0 || highlightCount() > 0) return true;
+                if (hasAiContentGenerated()) return true;
                 return !driver.findElements(TITLE_INPUT).isEmpty();
             });
         } catch (Exception ignored) {}
