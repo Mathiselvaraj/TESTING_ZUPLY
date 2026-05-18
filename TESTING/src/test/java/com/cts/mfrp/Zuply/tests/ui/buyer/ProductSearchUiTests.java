@@ -15,7 +15,8 @@ public class ProductSearchUiTests extends UiBaseTest {
         ProductsPage page = new ProductsPage(driver);
         page.open();
         page.search("rice");
-        try { Thread.sleep(1500); } catch (InterruptedException ignored) {}
+        // Wait for the search request + render to settle (toast or noop).
+        waitAfterAction();
 
         Assert.assertTrue(driver.getCurrentUrl().contains("/products"));
         Assert.assertTrue(page.isLoaded(), "Products page heading should remain after search");
@@ -27,7 +28,7 @@ public class ProductSearchUiTests extends UiBaseTest {
         ProductsPage page = new ProductsPage(driver);
         page.open();
         page.search("nonexistent_xyz_" + randomSuffix());
-        try { Thread.sleep(1500); } catch (InterruptedException ignored) {}
+        waitAfterAction();
 
         boolean noResultsCopy = driver.getPageSource().toLowerCase()
                 .matches(".*(no products|no results|nothing found).*");

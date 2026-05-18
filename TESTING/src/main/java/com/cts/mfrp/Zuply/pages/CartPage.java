@@ -44,12 +44,17 @@ public class CartPage extends BasePage {
     /**
      * Click the first quantity "+" button if one is present. Returns {@code true}
      * when the click was issued, {@code false} when the SPA renders no "+" button
-     * (some builds use steppers, others a free-text input).
+     * (some builds use steppers, others a free-text input). Briefly polls for the
+     * grand-total to refresh or a notification to surface; falls through silently.
      */
     public boolean incrementFirstQuantity() {
         if (!exists(QTY_PLUS_BTNS)) return false;
         click(QTY_PLUS_BTNS);
-        try { Thread.sleep(400); } catch (InterruptedException ignored) { Thread.currentThread().interrupt(); }
+        try {
+            new org.openqa.selenium.support.ui.WebDriverWait(driver, java.time.Duration.ofSeconds(2))
+                    .until(org.openqa.selenium.support.ui.ExpectedConditions.visibilityOfElementLocated(
+                            By.cssSelector("[role='alert'], .toast, [class*='snack'], .grand-total, [class*='total']")));
+        } catch (Exception ignored) {}
         return true;
     }
 }

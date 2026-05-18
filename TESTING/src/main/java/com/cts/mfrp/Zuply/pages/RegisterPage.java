@@ -1,8 +1,10 @@
 package com.cts.mfrp.zuply.pages;
 
 import org.openqa.selenium.By;
+import org.openqa.selenium.JavascriptExecutor;
 import org.openqa.selenium.WebDriver;
 import org.openqa.selenium.WebElement;
+import org.openqa.selenium.support.ui.ExpectedConditions;
 
 import java.util.List;
 
@@ -32,9 +34,19 @@ public class RegisterPage extends BasePage {
     public RegisterPage enterPassword(String pwd)    { type(PASSWORD, pwd); return this; }
     public RegisterPage enterStoreName(String store) { type(STORE_NAME, store); return this; }
     public RegisterPage selectRole(Role role) {
+        // Wait for at least one role button to render so we don't iterate an empty list.
+        wait.until(ExpectedConditions.presenceOfElementLocated(ROLE_BTNS));
         List<WebElement> btns = driver.findElements(ROLE_BTNS);
         for (WebElement b : btns) {
-            if (b.getText().trim().equalsIgnoreCase(role.name())) { b.click(); return this; }
+            if (b.getText().trim().equalsIgnoreCase(role.name())) {
+                // Scroll the role button into view then JS-click. The Zuply register page
+                // has a hero section above the form, so role buttons sit below the fold
+                // on smaller viewports -- a raw .click() lands at off-screen coordinates
+                // and throws ElementClickInterceptedException at e.g. (573, -13).
+                ((JavascriptExecutor) driver).executeScript(
+                        "arguments[0].scrollIntoView({block:'center'}); arguments[0].click();", b);
+                return this;
+            }
         }
         throw new IllegalStateException("Role button not found: " + role);
     }
