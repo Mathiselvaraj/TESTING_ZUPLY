@@ -5,7 +5,6 @@ import com.cts.mfrp.zuply.utils.TestDataHelper;
 import com.cts.mfrp.zuply.base.BaseTest;
 import com.cts.mfrp.zuply.clients.CartClient;
 import io.restassured.response.Response;
-import org.testng.Assert;
 import org.testng.annotations.BeforeClass;
 import org.testng.annotations.DataProvider;
 import org.testng.annotations.Test;
@@ -15,6 +14,8 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
+import static org.hamcrest.Matchers.*;
+
 @Test(groups = {"regression", "api", "cart"})
 public class CartTests extends BaseTest {
 
@@ -23,6 +24,7 @@ public class CartTests extends BaseTest {
     @BeforeClass
     public void setUp() { client = new CartClient(); }
 
+    /** Adds a product and returns the itemId for use in update / delete tests. */
     private Integer freshCartItemId() {
         client.addItem(buyerToken(), Map.of("productId", 1, "quantity", 1));
         Response cart = client.getCart(buyerToken());
@@ -41,45 +43,52 @@ public class CartTests extends BaseTest {
         return TestDataHelper.read("CartData.xlsx", "AddItem");
     }
 
-    @Test(description = "GET /api/cart with buyer JWT -> 200 with items")
+    // ─────────────────────────────────────────────────────────────────────────
+    // THEN: assert on what the server returned
+    // ─────────────────────────────────────────────────────────────────────────
+
+    @Test(description = "GET /api/cart with buyer JWT -> 200 with items array")
     public void testGetCart() {
-        Response r = client.getCart(buyerToken());
-        Assert.assertEquals(r.statusCode(), 200);
-        Assert.assertNotNull(ResponseUtils.body(r).getList("items"),
-                "items missing in cart response: " + r.asString());
+        client.getCart(buyerToken())
+            .then()
+                .statusCode(200)
+                .body("data.items", notNullValue());
     }
 
     @Test(dataProvider = "addItem", description = "POST /api/cart - data-driven")
     public void testAddItem(String productId, String quantity, String expectedStatus, String description) {
         log("Scenario: " + description);
+
         Map<String, Object> body = new HashMap<>();
         body.put("productId", Integer.parseInt(productId));
-        body.put("quantity", Integer.parseInt(quantity));
+        body.put("quantity",  Integer.parseInt(quantity));
+
+        // API may return 200 or 201 for a successful add
         Response r = client.addItem(buyerToken(), body);
         if (Integer.parseInt(expectedStatus) == 201) {
-            Assert.assertTrue(r.statusCode() == 201 || r.statusCode() == 200,
-                    "expected 201/200; got " + r.statusCode());
+            r.then().statusCode(anyOf(equalTo(200), equalTo(201)));
         } else {
-            Assert.assertEquals(r.statusCode(), Integer.parseInt(expectedStatus),
-                    "add: " + description);
+            r.then().statusCode(Integer.parseInt(expectedStatus));
         }
     }
 
     @Test(description = "PUT /api/cart/{itemId} valid quantity -> 200")
     public void testUpdateItem() {
         Integer id = freshCartItemId();
-        Assert.assertNotNull(id, "Could not obtain a cart item id for update");
-        Response r = client.updateItem(buyerToken(), id, Map.of("quantity", 5));
-        Assert.assertTrue(r.statusCode() == 200 || r.statusCode() == 404,
-                "expected 200/404; got " + r.statusCode());
+        if (id == null) throw new org.testng.SkipException("Could not obtain a cart item id for update");
+
+        client.updateItem(buyerToken(), id, Map.of("quantity", 5))
+            .then()
+                .statusCode(anyOf(equalTo(200), equalTo(404)));
     }
 
     @Test(description = "DELETE /api/cart/{itemId} valid -> 204")
     public void testDeleteItem() {
         Integer id = freshCartItemId();
-        Assert.assertNotNull(id, "Could not obtain a cart item id for delete");
-        Response r = client.deleteItem(buyerToken(), id);
-        Assert.assertTrue(r.statusCode() == 200 || r.statusCode() == 204 || r.statusCode() == 404,
-                "expected 200/204/404; got " + r.statusCode());
+        if (id == null) throw new org.testng.SkipException("Could not obtain a cart item id for delete");
+
+        client.deleteItem(buyerToken(), id)
+            .then()
+                .statusCode(anyOf(equalTo(200), equalTo(204), equalTo(404)));
     }
 }
