@@ -6,13 +6,25 @@ import io.restassured.response.Response;
 
 import java.util.Map;
 
+import static io.restassured.RestAssured.given;
+
 public class AuthClient {
 
+    // ── GIVEN: build request  WHEN: fire HTTP call ───────────────────────────
+
     public Response register(Map<String, Object> body) {
-        return RequestBuilder.spec().body(body).post(Endpoints.AUTH_REGISTER);
+        return given()
+                    .spec(RequestBuilder.spec())
+                    .body(body)
+               .when()
+                    .post(Endpoints.AUTH_REGISTER);
     }
 
     public Response login(Map<String, Object> body) {
-        return RequestBuilder.spec().body(body).post(Endpoints.AUTH_LOGIN);
+        return given()
+                    .spec(RequestBuilder.spec())
+                    .body(body)
+               .when()
+                    .post(Endpoints.AUTH_LOGIN);
     }
 }

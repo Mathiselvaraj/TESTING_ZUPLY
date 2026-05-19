@@ -6,22 +6,32 @@ import io.restassured.response.Response;
 
 import java.io.File;
 
+import static io.restassured.RestAssured.given;
+
 public class UploadClient {
 
+    // ── GIVEN: build request  WHEN: fire HTTP call ───────────────────────────
+
     public Response uploadFile(String token, File file) {
-        return RequestBuilder.multipartSpec(token)
-                .multiPart("file", file, "image/jpeg")
-                .post(Endpoints.UPLOAD);
+        return given()
+                    .spec(RequestBuilder.multipartSpec(token))
+                    .multiPart("file", file, "image/jpeg")
+               .when()
+                    .post(Endpoints.UPLOAD);
     }
 
     public Response uploadFileNoAuth(File file) {
-        return RequestBuilder.spec()
-                .multiPart("file", file, "image/jpeg")
-                .post(Endpoints.UPLOAD);
+        return given()
+                    .spec(RequestBuilder.spec())
+                    .multiPart("file", file, "image/jpeg")
+               .when()
+                    .post(Endpoints.UPLOAD);
     }
 
-    /** Upload an empty multipart request (no file part). */
     public Response uploadEmpty(String token) {
-        return RequestBuilder.multipartSpec(token).post(Endpoints.UPLOAD);
+        return given()
+                    .spec(RequestBuilder.multipartSpec(token))
+               .when()
+                    .post(Endpoints.UPLOAD);
     }
 }

@@ -6,73 +6,109 @@ import io.restassured.response.Response;
 
 import java.util.Map;
 
+import static io.restassured.RestAssured.given;
+
 public class AdminClient {
 
+    // ── GIVEN: build request  WHEN: fire HTTP call ───────────────────────────
+
     public Response dashboard(String token) {
-        return RequestBuilder.authSpec(token).get(Endpoints.ADMIN_DASHBOARD);
+        return given()
+                    .spec(RequestBuilder.authSpec(token))
+               .when()
+                    .get(Endpoints.ADMIN_DASHBOARD);
     }
 
     public Response dashboardNoAuth() {
-        return RequestBuilder.spec().get(Endpoints.ADMIN_DASHBOARD);
+        return given()
+                    .spec(RequestBuilder.spec())
+               .when()
+                    .get(Endpoints.ADMIN_DASHBOARD);
     }
 
     public Response getSellers(String token) {
-        return RequestBuilder.authSpec(token).get(Endpoints.ADMIN_SELLERS);
+        return given()
+                    .spec(RequestBuilder.authSpec(token))
+               .when()
+                    .get(Endpoints.ADMIN_SELLERS);
     }
 
     public Response approveSeller(String token, Object sellerId) {
-        return RequestBuilder.authSpec(token)
-                .pathParam("id", sellerId)
-                .patch(Endpoints.ADMIN_SELLER_APPROVE);
+        return given()
+                    .spec(RequestBuilder.authSpec(token))
+                    .pathParam("id", sellerId)
+               .when()
+                    .patch(Endpoints.ADMIN_SELLER_APPROVE);
     }
 
     public Response suspendSeller(String token, Object sellerId) {
-        return RequestBuilder.authSpec(token)
-                .pathParam("id", sellerId)
-                .patch(Endpoints.ADMIN_SELLER_SUSPEND);
+        return given()
+                    .spec(RequestBuilder.authSpec(token))
+                    .pathParam("id", sellerId)
+               .when()
+                    .patch(Endpoints.ADMIN_SELLER_SUSPEND);
     }
 
     public Response deleteSeller(String token, Object sellerId) {
-        return RequestBuilder.authSpec(token)
-                .pathParam("id", sellerId)
-                .delete(Endpoints.ADMIN_SELLER_BY_ID);
+        return given()
+                    .spec(RequestBuilder.authSpec(token))
+                    .pathParam("id", sellerId)
+               .when()
+                    .delete(Endpoints.ADMIN_SELLER_BY_ID);
     }
 
     public Response pendingProducts(String token) {
-        return RequestBuilder.authSpec(token).get(Endpoints.ADMIN_PRODUCTS);
+        return given()
+                    .spec(RequestBuilder.authSpec(token))
+               .when()
+                    .get(Endpoints.ADMIN_PRODUCTS);
     }
 
     public Response approveProduct(String token, Object productId) {
-        return RequestBuilder.authSpec(token)
-                .pathParam("id", productId)
-                .patch(Endpoints.ADMIN_PRODUCT_APPROVE);
+        return given()
+                    .spec(RequestBuilder.authSpec(token))
+                    .pathParam("id", productId)
+               .when()
+                    .patch(Endpoints.ADMIN_PRODUCT_APPROVE);
     }
 
     public Response rejectProduct(String token, Object productId, Map<String, Object> body) {
-        return RequestBuilder.authSpec(token)
-                .pathParam("id", productId)
-                .body(body)
-                .patch(Endpoints.ADMIN_PRODUCT_REJECT);
+        return given()
+                    .spec(RequestBuilder.authSpec(token))
+                    .pathParam("id", productId)
+                    .body(body)
+               .when()
+                    .patch(Endpoints.ADMIN_PRODUCT_REJECT);
     }
 
     public Response updateProduct(String token, Object productId, Map<String, Object> body) {
-        return RequestBuilder.authSpec(token)
-                .pathParam("id", productId)
-                .body(body)
-                .put(Endpoints.ADMIN_PRODUCT_BY_ID);
+        return given()
+                    .spec(RequestBuilder.authSpec(token))
+                    .pathParam("id", productId)
+                    .body(body)
+               .when()
+                    .put(Endpoints.ADMIN_PRODUCT_BY_ID);
     }
 
     public Response deleteProduct(String token, Object productId) {
-        return RequestBuilder.authSpec(token)
-                .pathParam("id", productId)
-                .delete(Endpoints.ADMIN_PRODUCT_BY_ID);
+        return given()
+                    .spec(RequestBuilder.authSpec(token))
+                    .pathParam("id", productId)
+               .when()
+                    .delete(Endpoints.ADMIN_PRODUCT_BY_ID);
     }
 
     public Response getOrders(String token) {
-        return RequestBuilder.authSpec(token).get(Endpoints.ADMIN_ORDERS);
+        return given()
+                    .spec(RequestBuilder.authSpec(token))
+               .when()
+                    .get(Endpoints.ADMIN_ORDERS);
     }
 
     public Response getReports(String token) {
-        return RequestBuilder.authSpec(token).get(Endpoints.ADMIN_REPORTS);
+        return given()
+                    .spec(RequestBuilder.authSpec(token))
+               .when()
+                    .get(Endpoints.ADMIN_REPORTS);
     }
 }
