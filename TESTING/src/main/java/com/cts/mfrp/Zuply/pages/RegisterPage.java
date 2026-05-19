@@ -6,6 +6,7 @@ import org.openqa.selenium.WebDriver;
 import org.openqa.selenium.WebElement;
 import org.openqa.selenium.support.ui.ExpectedConditions;
 
+import java.time.Duration;
 import java.util.List;
 
 /** Registration page at {@code /register}. */
@@ -51,7 +52,17 @@ public class RegisterPage extends BasePage {
         throw new IllegalStateException("Role button not found: " + role);
     }
 
-    public void submit() { click(REGISTER_BTN); }
+    /**
+     * Submit the register form. Waits up to 20s for the [disabled] binding on
+     * button.register-btn to flip — Angular's async email-uniqueness validator
+     * exceeds the default 10s wait on Render cold-starts. Falls back to a JS
+     * click if an overlay intercepts the native click.
+     */
+    public void submit() {
+        WebElement btn = waitClickable(REGISTER_BTN, Duration.ofSeconds(20));
+        try { btn.click(); }
+        catch (org.openqa.selenium.ElementClickInterceptedException e) { jsClick(btn); }
+    }
 
     public void registerAs(String name, String email, String phone, String password, Role role) {
         enterName(name).enterEmail(email).enterPhone(phone).enterPassword(password).selectRole(role).submit();

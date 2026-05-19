@@ -73,16 +73,30 @@ public abstract class BasePage {
     }
 
     protected void type(By by, String text) {
-//        WebElement el = waitVisible(by);
-//        el.clear();
-//        el.sendKeys(text);
         WebElement el = waitVisible(by);
-        // 1. Select all text (Ctrl + A) and press Backspace to delete it
         el.sendKeys(org.openqa.selenium.Keys.chord(org.openqa.selenium.Keys.CONTROL, "a"), org.openqa.selenium.Keys.BACK_SPACE);
-        // 2. Type the new text (if any)
         if (text != null && !text.isEmpty()) {
             el.sendKeys(text);
         }
+        // Angular reactive forms only run validators + mark the control as
+        // "touched" on blur. Without this, the [disabled] binding on submit
+        // buttons (form.invalid) never flips to false, so waitClickable() on
+        // the submit button times out even though the field values are valid.
+        ((JavascriptExecutor) driver).executeScript(
+                "arguments[0].dispatchEvent(new Event('input', {bubbles:true}));" +
+                "arguments[0].dispatchEvent(new Event('change', {bubbles:true}));" +
+                "arguments[0].dispatchEvent(new Event('blur', {bubbles:true}));",
+                el);
+    }
+
+    /**
+     * Wait up to {@code timeout} for an element to become clickable (visible + enabled).
+     * Use this for submit buttons gated on async form validators (e.g. backend
+     * email-uniqueness checks) that can exceed the default 10s wait on slow envs.
+     */
+    protected WebElement waitClickable(By by, Duration timeout) {
+        return new WebDriverWait(driver, timeout)
+                .until(ExpectedConditions.elementToBeClickable(by));
     }
 
     /**

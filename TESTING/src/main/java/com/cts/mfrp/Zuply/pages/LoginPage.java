@@ -2,7 +2,10 @@ package com.cts.mfrp.zuply.pages;
 
 import org.openqa.selenium.By;
 import org.openqa.selenium.WebDriver;
+import org.openqa.selenium.WebElement;
 import org.openqa.selenium.support.ui.ExpectedConditions;
+
+import java.time.Duration;
 
 /** Login page at {@code /login}. */
 public class LoginPage extends BasePage {
@@ -19,7 +22,17 @@ public class LoginPage extends BasePage {
 
     public LoginPage enterEmail(String email)       { type(EMAIL, email); return this; }
     public LoginPage enterPassword(String password) { type(PASSWORD, password); return this; }
-    public void submit()                            { click(LOGIN_BTN); }
+
+    /**
+     * Submit the login form. Waits up to 20s for the [disabled] binding on
+     * button.login-btn to flip — Angular's form async validators can be slow on
+     * Render cold-starts. Falls back to a JS click if a stray overlay intercepts.
+     */
+    public void submit() {
+        WebElement btn = waitClickable(LOGIN_BTN, Duration.ofSeconds(20));
+        try { btn.click(); }
+        catch (org.openqa.selenium.ElementClickInterceptedException e) { jsClick(btn); }
+    }
 
     /** Convenience: fill + submit + wait for navigation away from /login. */
     public void loginAs(String email, String password) {

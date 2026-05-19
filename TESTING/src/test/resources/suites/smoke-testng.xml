@@ -14,6 +14,7 @@
     </listeners>
 
     <parameter name="headless" value="true"/>
+    <parameter name="report.subdir" value="smoke"/>
 
     <!-- Only execute methods that belong to the "smoke" group -->
     <groups>
