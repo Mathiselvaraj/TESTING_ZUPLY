@@ -22,6 +22,16 @@ public class RegisterPage extends BasePage {
 
     private static final By STORE_NAME = By.xpath("//input[@placeholder='Enter your store name']");
 
+    // Field-level + page-level error surfaces. The Zuply SPA mixes Angular reactive-form
+    // <mat-error>/<small class="error"> inline messages with global toast/alert banners
+    // for backend rejections, so we cover both shapes with a single union selector.
+    private static final By EMAIL_ERROR = By.cssSelector(
+            "mat-error[for*='email'], small.error-message[for*='email']," +
+            ".invalid-feedback.email, .email-error, [class*='email'][class*='error']");
+    private static final By ALERT_BANNER = By.cssSelector(
+            "[role='alert'], .toast, .alert, .alert-danger, .notification," +
+            "[class*='toast'], [class*='snack'], [class*='banner'][class*='error']");
+
     public enum Role { CUSTOMER, SELLER }
 
     public RegisterPage(WebDriver driver) { super(driver); }
@@ -87,5 +97,21 @@ public class RegisterPage extends BasePage {
             String url = d.getCurrentUrl();
             return url != null && !url.contains("/register");
         });
+    }
+
+    /** True when an inline email-field validation message is rendered. */
+    public boolean hasEmailValidationError() { return exists(EMAIL_ERROR); }
+
+    /** Text of the inline email validation message, or empty string if none. */
+    public String getEmailErrorMessage() {
+        return exists(EMAIL_ERROR) ? text(EMAIL_ERROR) : "";
+    }
+
+    /** True when a page-level alert/toast banner is visible (backend rejection surface). */
+    public boolean hasAlertBanner() { return exists(ALERT_BANNER); }
+
+    /** Text of the first visible alert/toast banner, or empty string if none. */
+    public String getAlertBannerText() {
+        return exists(ALERT_BANNER) ? text(ALERT_BANNER) : "";
     }
 }

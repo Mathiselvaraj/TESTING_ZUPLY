@@ -3,11 +3,16 @@ package com.cts.mfrp.zuply.tests.ui.auth;
 import com.cts.mfrp.zuply.base.UiBaseTest;
 import com.cts.mfrp.zuply.pages.LoginPage;
 import com.cts.mfrp.zuply.pages.RegisterPage;
+import com.fasterxml.jackson.databind.JsonNode;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import org.openqa.selenium.By;
+import org.openqa.selenium.JavascriptExecutor;
 import org.openqa.selenium.support.ui.ExpectedConditions;
 import org.testng.Assert;
 import org.testng.annotations.Test;
 
+import java.nio.charset.StandardCharsets;
+import java.util.Base64;
 import java.util.regex.Pattern;
 
 /**
@@ -174,6 +179,7 @@ public class AuthUiTests extends UiBaseTest {
                 "Should remain on /register when phone number is invalid");
     }
 
+<<<<<<< Updated upstream
     /**
      * AD_TC_AU011 -- Password field on the registration form displays a real-time
      * strength indicator (Weak / Medium / Strong) as the user types.
@@ -226,5 +232,123 @@ public class AuthUiTests extends UiBaseTest {
         Assert.assertTrue(rolesPresent >= 2,
                 "Login flow should expose at least 2 of the 3 FRD-mandated role options "
                 + "(Customer / Seller / Admin) -- found " + rolesPresent + " on /login");
+=======
+    /** AD_TC0011 — Validate registration is rejected when email uses an invalid TLD. */
+    @Test(description = "AD_TC0011 — InvalidTldEmail")
+    public void tc011_invalidTldEmail() {
+        RegisterPage page = new RegisterPage(driver);
+        page.open();
+        // 'gmail.dd' is syntactically email-shaped (passes the HTML5 input[type=email] sniff)
+        // but '.dd' is not a real TLD — the SPA OR backend must reject it.
+        page.registerAs("Invalid TLD", "user@gmail.dd", "9876543210", "Test@1234", RegisterPage.Role.CUSTOMER);
+
+        Pattern errorPattern = Pattern.compile("invalid|valid email|domain|tld|not allowed", Pattern.CASE_INSENSITIVE);
+        wait.until(ExpectedConditions.textMatches(By.tagName("body"), errorPattern));
+
+        boolean stayedOnRegister = driver.getCurrentUrl().contains("/register");
+        boolean inlineErrorShown = page.hasEmailValidationError();
+        boolean bannerShown      = page.hasAlertBanner();
+        Assert.assertTrue(stayedOnRegister && (inlineErrorShown || bannerShown),
+                "Expected invalid-TLD rejection; url=" + driver.getCurrentUrl()
+                        + " inlineErr=" + page.getEmailErrorMessage()
+                        + " banner=" + page.getAlertBannerText());
+    }
+
+    /** AD_TC0012 — Validate UI handles backend rejection of a fake/disposable email domain. */
+    @Test(description = "AD_TC0012 — FakeDisposableDomain")
+    public void tc012_fakeDisposableDomain() {
+        RegisterPage page = new RegisterPage(driver);
+        page.open();
+        // 'abcdd.com' is syntactically valid but a non-resolving / disposable-looking domain.
+        // The backend's email-validation step is expected to reject it; the SPA must
+        // surface the rejection either as an alert banner or an inline field message
+        // rather than silently failing.
+        page.registerAs("Fake Domain", "user@abcdd.com", "9876543210", "Test@1234", RegisterPage.Role.CUSTOMER);
+
+        Pattern errorPattern = Pattern.compile(
+                "invalid|disposable|not allowed|cannot|reject|unable", Pattern.CASE_INSENSITIVE);
+        wait.until(ExpectedConditions.textMatches(By.tagName("body"), errorPattern));
+
+        boolean stayedOnRegister = driver.getCurrentUrl().contains("/register");
+        boolean surfacedError    = page.hasAlertBanner() || page.hasEmailValidationError();
+        Assert.assertTrue(stayedOnRegister && surfacedError,
+                "Expected disposable-domain rejection to surface in the UI; url="
+                        + driver.getCurrentUrl()
+                        + " banner=" + page.getAlertBannerText()
+                        + " inlineErr=" + page.getEmailErrorMessage());
+    }
+
+    /** AD_TC0013 — Validate JWT issued by sign-up/login uses HS256 as the signing algorithm. */
+    @Test(description = "AD_TC0013 — JwtAlgorithmIsHs256")
+    public void tc013_jwtAlgorithmIsHs256() {
+        // Drive a successful login through the UI so the SPA stores the JWT it received
+        // from the auth API. We pull the token from window.localStorage (the Zuply
+        // Angular app's session store — see UiBaseTest#clearSession) rather than
+        // wiring up DevTools network capture, which keeps the assertion deterministic.
+        LoginPage page = new LoginPage(driver);
+        page.open();
+        page.loginAs(adminEmail(), adminPassword());
+        Assert.assertFalse(driver.getCurrentUrl().contains("/login"),
+                "Pre-condition: login must succeed before JWT can be inspected");
+
+        String jwt = readJwtFromLocalStorage();
+        Assert.assertNotNull(jwt, "Expected a JWT in localStorage after successful login");
+        String[] segments = jwt.split("\\.");
+        Assert.assertEquals(segments.length, 3, "JWT must have header.payload.signature; got: " + jwt);
+
+        String alg = decodeJwtHeaderAlg(segments[0]);
+        Assert.assertEquals(alg, "HS256",
+                "JWT 'alg' header must strictly equal HS256; was: " + alg);
+    }
+
+    /* ------------------------------------------------------------------ */
+    /* JWT helpers — kept private to the spec so deliverables stay scoped */
+    /* ------------------------------------------------------------------ */
+
+    /**
+     * Scan localStorage for the JWT. Some Angular builds store the raw token under
+     * a fixed key (e.g. 'token', 'access_token'), others nest it in a JSON blob
+     * ({user:{token:'...'}}). This script handles both shapes by treating any
+     * three-segment dotted string as a candidate JWT.
+     */
+    private String readJwtFromLocalStorage() {
+        String script =
+                "for (let i = 0; i < window.localStorage.length; i++) {" +
+                "  const k = window.localStorage.key(i);" +
+                "  const v = window.localStorage.getItem(k);" +
+                "  if (!v) continue;" +
+                "  if (v.split('.').length === 3 && /^[A-Za-z0-9_-]+\\.[A-Za-z0-9_-]+\\.[A-Za-z0-9_-]+$/.test(v)) return v;" +
+                "  try {" +
+                "    const o = JSON.parse(v);" +
+                "    const stack = [o];" +
+                "    while (stack.length) {" +
+                "      const cur = stack.pop();" +
+                "      if (cur && typeof cur === 'object') {" +
+                "        for (const key of Object.keys(cur)) {" +
+                "          const val = cur[key];" +
+                "          if (typeof val === 'string' && val.split('.').length === 3 &&" +
+                "              /^[A-Za-z0-9_-]+\\.[A-Za-z0-9_-]+\\.[A-Za-z0-9_-]+$/.test(val)) return val;" +
+                "          if (val && typeof val === 'object') stack.push(val);" +
+                "        }" +
+                "      }" +
+                "    }" +
+                "  } catch (e) { /* not JSON */ }" +
+                "}" +
+                "return null;";
+        return (String) ((JavascriptExecutor) driver).executeScript(script);
+    }
+
+    /** Base64URL-decode the JWT header segment and return its {@code alg} claim. */
+    private String decodeJwtHeaderAlg(String headerSegment) {
+        byte[] decoded = Base64.getUrlDecoder().decode(headerSegment);
+        String json = new String(decoded, StandardCharsets.UTF_8);
+        try {
+            JsonNode node = new ObjectMapper().readTree(json);
+            JsonNode alg = node.get("alg");
+            return alg == null ? null : alg.asText();
+        } catch (Exception e) {
+            throw new AssertionError("JWT header is not valid JSON: " + json, e);
+        }
+>>>>>>> Stashed changes
     }
 }
