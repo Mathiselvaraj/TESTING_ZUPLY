@@ -1,6 +1,6 @@
-package com.cts.mfrp.zuply.utils;
+package com.cts.mfrp.Zuply.Utils;
 
-import com.cts.mfrp.zuply.constants.AppConstants;
+import com.cts.mfrp.Zuply.constants.AppConstants;
 import org.apache.poi.ss.usermodel.Row;
 import org.apache.poi.ss.usermodel.Sheet;
 import org.apache.poi.xssf.usermodel.XSSFWorkbook;
@@ -11,7 +11,7 @@ import java.io.IOException;
 
 /**
  * One-time generator for the project's Excel test data files.
- * Run as: mvn -q exec:java -Dexec.mainClass="com.cts.mfrp.zuply.utils.TestDataGenerator"
+ * Run as: mvn -q exec:java -Dexec.mainClass="com.cts.mfrp.Zuply.Utils.TestDataGenerator"
  *      OR right-click -> Run main() in IDE.
  *
  * Safe to re-run; overwrites existing files in src/test/resources/testdata/.

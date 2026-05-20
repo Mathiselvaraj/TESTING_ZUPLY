@@ -1,7 +1,7 @@
 package com.cts.mfrp.Zuply.tests.ui.admin;
 
 
-import com.cts.mfrp.zuply.base.UiBaseTest;
+import com.cts.mfrp.Zuply.base.UiBaseTest;
 import org.openqa.selenium.support.ui.ExpectedConditions;
 import org.openqa.selenium.support.ui.WebDriverWait;
 import org.testng.Assert;

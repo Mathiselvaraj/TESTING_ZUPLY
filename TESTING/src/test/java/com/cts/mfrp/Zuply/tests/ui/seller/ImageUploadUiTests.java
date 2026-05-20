@@ -1,8 +1,8 @@
 package com.cts.mfrp.Zuply.tests.ui.seller;
 
 
-import com.cts.mfrp.zuply.base.UiBaseTest;
-import com.cts.mfrp.zuply.pages.SellerUploadPage;
+import com.cts.mfrp.Zuply.base.UiBaseTest;
+import com.cts.mfrp.Zuply.pages.SellerUploadPage;
 import org.testng.Assert;
 import org.testng.annotations.BeforeClass;
 import org.testng.annotations.Test;

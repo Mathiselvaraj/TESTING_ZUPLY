@@ -1,4 +1,4 @@
-package com.cts.mfrp.zuply.utils;
+package com.cts.mfrp.Zuply.Utils;
 
 import io.github.bonigarcia.wdm.WebDriverManager;
 import org.openqa.selenium.WebDriver;

@@ -1,4 +1,4 @@
-package com.cts.mfrp.zuply.constants;
+package com.cts.mfrp.Zuply.constants;
 
 public final class AppConstants {
 

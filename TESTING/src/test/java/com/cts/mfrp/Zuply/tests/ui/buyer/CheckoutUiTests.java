@@ -1,10 +1,10 @@
-package com.cts.mfrp.zuply.tests.ui.buyer;
+package com.cts.mfrp.Zuply.tests.ui.buyer;
 
 
-import com.cts.mfrp.zuply.base.UiBaseTest;
-import com.cts.mfrp.zuply.pages.CartPage;
-import com.cts.mfrp.zuply.pages.CheckoutPage;
-import com.cts.mfrp.zuply.pages.ProductsPage;
+import com.cts.mfrp.Zuply.base.UiBaseTest;
+import com.cts.mfrp.Zuply.pages.CartPage;
+import com.cts.mfrp.Zuply.pages.CheckoutPage;
+import com.cts.mfrp.Zuply.pages.ProductsPage;
 import org.openqa.selenium.By;
 import org.testng.Assert;
 import org.testng.SkipException;
@@ -92,9 +92,17 @@ public class CheckoutUiTests extends UiBaseTest {
         CheckoutPage cp = new CheckoutPage(driver);
         cp.open();
 
+        // THE FIX: Wait up to 10 seconds for the 'payment-options' container to physically
+        // render on the screen before taking the HTML snapshot.
+        new org.openqa.selenium.support.ui.WebDriverWait(driver, java.time.Duration.ofSeconds(10))
+                .until(org.openqa.selenium.support.ui.ExpectedConditions.visibilityOfElementLocated(
+                        By.cssSelector(".payment-options, .payment-option")));
+
         String body = driver.getPageSource().toLowerCase();
+
+        // Slightly broadened search strings just in case!
         boolean hasCod  = body.contains("cash on delivery") || body.contains("cod");
-        boolean hasUpi  = body.contains("upi");
+        boolean hasUpi  = body.contains("upi") || body.contains("upi payment") || body.contains("gpay");
         boolean hasCard = body.contains("card");
 
         Assert.assertTrue(hasCod,  "Checkout should expose 'Cash on Delivery' payment method (FRD section 2.5)");

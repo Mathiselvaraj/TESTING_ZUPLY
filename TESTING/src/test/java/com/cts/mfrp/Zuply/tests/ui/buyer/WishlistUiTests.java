@@ -1,8 +1,8 @@
 package com.cts.mfrp.Zuply.tests.ui.buyer;
 
-import com.cts.mfrp.zuply.base.UiBaseTest;
-import com.cts.mfrp.zuply.pages.ProductsPage;
-import com.cts.mfrp.zuply.pages.WishlistPage;
+import com.cts.mfrp.Zuply.base.UiBaseTest;
+import com.cts.mfrp.Zuply.pages.ProductsPage;
+import com.cts.mfrp.Zuply.pages.WishlistPage;
 import org.openqa.selenium.By;
 import org.openqa.selenium.support.ui.ExpectedConditions;
 import org.testng.Assert;

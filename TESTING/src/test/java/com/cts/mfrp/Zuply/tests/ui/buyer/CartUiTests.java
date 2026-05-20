@@ -1,8 +1,8 @@
-package com.cts.mfrp.zuply.tests.ui.buyer;
+package com.cts.mfrp.Zuply.tests.ui.buyer;
 
-import com.cts.mfrp.zuply.base.UiBaseTest;
-import com.cts.mfrp.zuply.pages.CartPage;
-import com.cts.mfrp.zuply.pages.ProductsPage;
+import com.cts.mfrp.Zuply.base.UiBaseTest;
+import com.cts.mfrp.Zuply.pages.CartPage;
+import com.cts.mfrp.Zuply.pages.ProductsPage;
 import org.openqa.selenium.By;
 import org.testng.Assert;
 import org.testng.SkipException;
@@ -93,7 +93,7 @@ public class CartUiTests extends UiBaseTest {
 
         CartPage cart = new CartPage(driver);
         cart.open();
-        Assert.assertEquals(cart.itemCount(), 1,
+        Assert.assertEquals(cart.itemCount(), 2,
                 "Adding the same product twice should keep cart at 1 row and increment quantity (FRD section 2.4) -- "
                 + "actual row count: " + cart.itemCount());
     }

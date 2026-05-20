@@ -10,7 +10,7 @@
 <suite name="Zuply Smoke Suite" verbose="1">
 
     <listeners>
-        <listener class-name="com.cts.mfrp.zuply.utils.ExtentReportListener"/>
+        <listener class-name="com.cts.mfrp.Zuply.Utils.ExtentReportListener"/>
     </listeners>
 
     <parameter name="headless" value="true"/>
@@ -25,19 +25,19 @@
 
     <test name="Smoke — API Auth">
         <classes>
-            <class name="com.cts.mfrp.zuply.tests.api.AuthTests"/>
+            <class name="com.cts.mfrp.Zuply.tests.api.AuthTests"/>
         </classes>
     </test>
 
     <test name="Smoke — UI Auth">
         <classes>
-            <class name="com.cts.mfrp.zuply.tests.ui.auth.AuthUiTests"/>
+            <class name="com.cts.mfrp.Zuply.tests.ui.auth.AuthUiTests"/>
         </classes>
     </test>
 
     <test name="Smoke — UI Home">
         <classes>
-            <class name="com.cts.mfrp.zuply.tests.ui.buyer.HomePageUiTests"/>
+            <class name="com.cts.mfrp.Zuply.tests.ui.buyer.HomePageUiTests"/>
         </classes>
     </test>
 

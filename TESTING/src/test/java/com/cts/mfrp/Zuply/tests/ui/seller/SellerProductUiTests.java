@@ -1,12 +1,12 @@
 package com.cts.mfrp.Zuply.tests.ui.seller;
 
 
-import com.cts.mfrp.zuply.base.UiBaseTest;
-import com.cts.mfrp.zuply.pages.SellerDashboardPage;
-import com.cts.mfrp.zuply.pages.SellerOrdersPage;
-import com.cts.mfrp.zuply.pages.SellerProductsPage;
-import com.cts.mfrp.zuply.pages.SellerUploadPage;
-import com.cts.mfrp.zuply.pages.SellersListingPage;
+import com.cts.mfrp.Zuply.base.UiBaseTest;
+import com.cts.mfrp.Zuply.pages.SellerDashboardPage;
+import com.cts.mfrp.Zuply.pages.SellerOrdersPage;
+import com.cts.mfrp.Zuply.pages.SellerProductsPage;
+import com.cts.mfrp.Zuply.pages.SellerUploadPage;
+import com.cts.mfrp.Zuply.pages.SellersListingPage;
 import org.testng.Assert;
 import org.testng.SkipException;
 import org.testng.annotations.BeforeClass;

@@ -1,4 +1,4 @@
-package com.cts.mfrp.zuply.utils;
+package com.cts.mfrp.Zuply.Utils;
 
 import org.openqa.selenium.OutputType;
 import org.openqa.selenium.TakesScreenshot;

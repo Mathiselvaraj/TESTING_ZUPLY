@@ -1,4 +1,4 @@
-package com.cts.mfrp.zuply.utils;
+package com.cts.mfrp.Zuply.Utils;
 
 import com.aventstack.extentreports.ExtentReports;
 import com.aventstack.extentreports.ExtentTest;

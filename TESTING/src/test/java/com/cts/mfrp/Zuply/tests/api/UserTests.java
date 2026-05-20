@@ -1,8 +1,8 @@
 package com.cts.mfrp.Zuply.tests.api;
 
-import com.cts.mfrp.zuply.utils.TestDataHelper;
-import com.cts.mfrp.zuply.base.BaseTest;
-import com.cts.mfrp.zuply.clients.UserClient;
+import com.cts.mfrp.Zuply.Utils.TestDataHelper;
+import com.cts.mfrp.Zuply.base.BaseTest;
+import com.cts.mfrp.Zuply.clients.UserClient;
 import io.restassured.response.Response;
 import org.testng.annotations.BeforeClass;
 import org.testng.annotations.DataProvider;

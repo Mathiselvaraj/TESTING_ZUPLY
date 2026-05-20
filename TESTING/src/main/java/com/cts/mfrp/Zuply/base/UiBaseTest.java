@@ -1,8 +1,8 @@
-package com.cts.mfrp.zuply.base;
+package com.cts.mfrp.Zuply.base;
 
-import com.cts.mfrp.zuply.pages.LoginPage;
-import com.cts.mfrp.zuply.pages.RegisterPage;
-import com.cts.mfrp.zuply.utils.DriverFactory;
+import com.cts.mfrp.Zuply.pages.LoginPage;
+import com.cts.mfrp.Zuply.pages.RegisterPage;
+import com.cts.mfrp.Zuply.Utils.DriverFactory;
 import org.openqa.selenium.By;
 import org.openqa.selenium.JavascriptExecutor;
 import org.openqa.selenium.TimeoutException;
@@ -198,7 +198,7 @@ public abstract class UiBaseTest {
      * Navigate the SPA to {@code route} via {@code history.pushState} + a synthetic
      * popstate event. Used by tests that intentionally attempt routes the current
      * user isn't authorized for — these tests can't instantiate the target page
-     * object because its {@link com.cts.mfrp.zuply.pages.BasePage#open()} would
+     * object because its {@link com.cts.mfrp.Zuply.pages.BasePage#open()} would
      * wait on a readyMarker that will never appear under unauthorized access.
      */
     protected void navigateRoute(String route) {

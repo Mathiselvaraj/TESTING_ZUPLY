@@ -1,4 +1,4 @@
-package com.cts.mfrp.zuply.utils;
+package com.cts.mfrp.Zuply.Utils;
 
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;

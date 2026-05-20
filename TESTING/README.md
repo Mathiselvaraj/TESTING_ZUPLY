@@ -33,7 +33,7 @@ src/
 
 2. **Generate Excel test data** (one-time; safe to re-run):
    ```
-   mvn -q compile exec:java -Dexec.mainClass="com.cts.mfrp.zuply.utils.TestDataGenerator"
+   mvn -q compile exec:java -Dexec.mainClass="com.cts.mfrp.Zuply.Utils.TestDataGenerator"
    ```
    or just right-click `TestDataGenerator.main()` in your IDE. Files land in `src/test/resources/testdata/`.
 

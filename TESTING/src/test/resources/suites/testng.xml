@@ -3,7 +3,7 @@
 <suite name="Zuply API Suite" verbose="1">
 
     <listeners>
-        <listener class-name="com.cts.mfrp.zuply.utils.ExtentReportListener"/>
+        <listener class-name="com.cts.mfrp.Zuply.Utils.ExtentReportListener"/>
     </listeners>
 
     <test name="Authentication">

@@ -1,9 +1,9 @@
-package com.cts.mfrp.zuply.tests.ui.admin;
+package com.cts.mfrp.Zuply.tests.ui.admin;
 
 
-import com.cts.mfrp.zuply.base.UiBaseTest;
-import com.cts.mfrp.zuply.pages.AdminDashboardPage;
-import com.cts.mfrp.zuply.pages.AdminProductsPage;
+import com.cts.mfrp.Zuply.base.UiBaseTest;
+import com.cts.mfrp.Zuply.pages.AdminDashboardPage;
+import com.cts.mfrp.Zuply.pages.AdminProductsPage;
 import org.openqa.selenium.By;
 import org.testng.Assert;
 import org.testng.annotations.BeforeClass;

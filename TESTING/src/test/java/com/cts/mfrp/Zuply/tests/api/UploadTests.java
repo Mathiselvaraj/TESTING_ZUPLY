@@ -1,7 +1,7 @@
 package com.cts.mfrp.Zuply.tests.api;
 
-import com.cts.mfrp.zuply.base.BaseTest;
-import com.cts.mfrp.zuply.clients.UploadClient;
+import com.cts.mfrp.Zuply.base.BaseTest;
+import com.cts.mfrp.Zuply.clients.UploadClient;
 import org.testng.annotations.BeforeClass;
 import org.testng.annotations.Test;
 

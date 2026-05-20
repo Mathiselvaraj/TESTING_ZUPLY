@@ -1,8 +1,8 @@
-package com.cts.mfrp.zuply.base;
+package com.cts.mfrp.Zuply.base;
 
-import com.cts.mfrp.zuply.utils.ConfigReader;
-import com.cts.mfrp.zuply.utils.ExtentManager;
-import com.cts.mfrp.zuply.utils.AuthManager;
+import com.cts.mfrp.Zuply.Utils.ConfigReader;
+import com.cts.mfrp.Zuply.Utils.ExtentManager;
+import com.cts.mfrp.Zuply.Utils.AuthManager;
 import io.restassured.RestAssured;
 import io.restassured.config.HttpClientConfig;
 import io.restassured.config.RestAssuredConfig;

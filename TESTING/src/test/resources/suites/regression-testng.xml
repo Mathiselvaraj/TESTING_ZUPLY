@@ -12,7 +12,7 @@
 <suite name="Zuply Regression UI Suite" verbose="1">
 
     <listeners>
-        <listener class-name="com.cts.mfrp.zuply.utils.ExtentReportListener"/>
+        <listener class-name="com.cts.mfrp.Zuply.Utils.ExtentReportListener"/>
     </listeners>
 
     <parameter name="headless" value="true"/>
@@ -24,63 +24,63 @@
     </groups>
 
     <test name="Regression - Auth UI (TC001-TC005)">
-        <classes><class name="com.cts.mfrp.zuply.tests.ui.auth.AuthUiTests"/></classes>
+        <classes><class name="com.cts.mfrp.Zuply.tests.ui.auth.AuthUiTests"/></classes>
     </test>
 
     <test name="Regression - Home Page UI (TC006)">
-        <classes><class name="com.cts.mfrp.zuply.tests.ui.buyer.HomePageUiTests"/></classes>
+        <classes><class name="com.cts.mfrp.Zuply.tests.ui.buyer.HomePageUiTests"/></classes>
     </test>
 
     <test name="Regression - Product Search UI (TC007-TC009)">
-        <classes><class name="com.cts.mfrp.zuply.tests.ui.buyer.ProductSearchUiTests"/></classes>
+        <classes><class name="com.cts.mfrp.Zuply.tests.ui.buyer.ProductSearchUiTests"/></classes>
     </test>
 
     <test name="Regression - Wishlist UI (TC010-TC012)">
-        <classes><class name="com.cts.mfrp.zuply.tests.ui.buyer.WishlistUiTests"/></classes>
+        <classes><class name="com.cts.mfrp.Zuply.tests.ui.buyer.WishlistUiTests"/></classes>
     </test>
 
     <test name="Regression - Cart UI (TC013-TC014)">
-        <classes><class name="com.cts.mfrp.zuply.tests.ui.buyer.CartUiTests"/></classes>
+        <classes><class name="com.cts.mfrp.Zuply.tests.ui.buyer.CartUiTests"/></classes>
     </test>
 
     <test name="Regression - Checkout UI (TC015-TC016)">
-        <classes><class name="com.cts.mfrp.zuply.tests.ui.buyer.CheckoutUiTests"/></classes>
+        <classes><class name="com.cts.mfrp.Zuply.tests.ui.buyer.CheckoutUiTests"/></classes>
     </test>
 
     <test name="Regression - Order Tracking UI (TC017-TC018)">
-        <classes><class name="com.cts.mfrp.zuply.tests.ui.buyer.OrderTrackingUiTests"/></classes>
+        <classes><class name="com.cts.mfrp.Zuply.tests.ui.buyer.OrderTrackingUiTests"/></classes>
     </test>
 
     <test name="Regression - Customer Profile UI (TC019)">
-        <classes><class name="com.cts.mfrp.zuply.tests.ui.buyer.CustomerProfileUiTests"/></classes>
+        <classes><class name="com.cts.mfrp.Zuply.tests.ui.buyer.CustomerProfileUiTests"/></classes>
     </test>
 
     <test name="Regression - Reviews UI (AD_TC_RV001-004)">
-        <classes><class name="com.cts.mfrp.zuply.tests.ui.buyer.ReviewsUiTests"/></classes>
+        <classes><class name="com.cts.mfrp.Zuply.tests.ui.buyer.ReviewsUiTests"/></classes>
     </test>
 
     <test name="Regression - Seller Product UI (TC020-TC021)">
-        <classes><class name="com.cts.mfrp.zuply.tests.ui.seller.SellerProductUiTests"/></classes>
+        <classes><class name="com.cts.mfrp.Zuply.tests.ui.seller.SellerProductUiTests"/></classes>
     </test>
 
     <test name="Regression - Admin Product UI (TC022-TC023)">
-        <classes><class name="com.cts.mfrp.zuply.tests.ui.admin.AdminProductUiTests"/></classes>
+        <classes><class name="com.cts.mfrp.Zuply.tests.ui.admin.AdminProductUiTests"/></classes>
     </test>
 
     <test name="Regression - Admin Seller UI (TC024)">
-        <classes><class name="com.cts.mfrp.zuply.tests.ui.admin.AdminSellerUiTests"/></classes>
+        <classes><class name="com.cts.mfrp.Zuply.tests.ui.admin.AdminSellerUiTests"/></classes>
     </test>
 
     <test name="Regression - Image Upload UI (TC025-TC028)">
-        <classes><class name="com.cts.mfrp.zuply.tests.ui.seller.ImageUploadUiTests"/></classes>
+        <classes><class name="com.cts.mfrp.Zuply.tests.ui.seller.ImageUploadUiTests"/></classes>
     </test>
 
     <test name="Regression - AI Listing UI (TC029-TC038)">
-        <classes><class name="com.cts.mfrp.zuply.tests.ui.ai.AIListingUiTests"/></classes>
+        <classes><class name="com.cts.mfrp.Zuply.tests.ui.ai.AIListingUiTests"/></classes>
     </test>
 
     <test name="Regression - Security UI (TC039)">
-        <classes><class name="com.cts.mfrp.zuply.tests.ui.admin.SecurityUiTests"/></classes>
+        <classes><class name="com.cts.mfrp.Zuply.tests.ui.admin.SecurityUiTests"/></classes>
     </test>
 
 </suite>
