@@ -1,4 +1,4 @@
-package com.cts.mfrp.Zuply.tests.api;
+package com.cts.mfrp.zuply.tests.api;
 
 import com.cts.mfrp.zuply.base.BaseTest;
 import com.cts.mfrp.zuply.clients.UploadClient;
