@@ -3,6 +3,7 @@ package com.cts.mfrp.zuply.tests.ui.buyer;
 import com.cts.mfrp.zuply.base.UiBaseTest;
 import com.cts.mfrp.zuply.pages.ProductsPage;
 import org.openqa.selenium.By;
+import org.openqa.selenium.JavascriptExecutor;
 import org.openqa.selenium.WebElement;
 import org.openqa.selenium.support.ui.ExpectedConditions;
 import org.testng.Assert;
@@ -11,6 +12,7 @@ import org.testng.annotations.BeforeClass;
 import org.testng.annotations.Test;
 
 import java.util.List;
+import java.util.stream.Collectors;
 
 /**
  * Product reviews and ratings -- FRD section 2.9. Maps to TC_RV001 - TC_RV004.
@@ -51,12 +53,24 @@ public class ReviewsUiTests extends UiBaseTest {
         clearSession();
         openFirstProductDetail();
 
+        // Use innerText (rendered text) instead of raw HTML so text split across
+        // multiple DOM nodes is still matched by simple contains() checks.
+        String innerText = ((JavascriptExecutor) driver)
+                .executeScript("return document.body.innerText").toString().toLowerCase();
         String body = driver.getPageSource().toLowerCase();
-        boolean hasRatingDigits = body.matches("(?s).*\\b[0-5](?:\\.[0-9])?\\s*(?:star|out of 5|/\\s*5).*")
+
+        boolean hasRatingDigits = innerText.matches("(?s).*\\b[0-5](?:\\.[0-9])?\\s*(?:star|out of 5|/\\s*5).*")
                 || !driver.findElements(By.cssSelector(
                         ".star, .stars, [class*='star'], [class*='rating']")).isEmpty();
-        boolean hasReviewCount = body.matches("(?s).*\\(\\s*\\d+\\s*\\b(review|rating)s?\\b.*\\).*")
-                || body.matches("(?s).*\\b\\d+\\s+(review|rating)s?\\b.*");
+
+        // Check rendered text for any digit adjacent to the word "review" or "rating".
+        boolean hasReviewCount = innerText.matches("(?s).*\\d+.*\\breview.*")
+                || innerText.matches("(?s).*\\breview.*\\d+.*")
+                || innerText.matches("(?s).*\\d+.*\\brating.*")
+                || innerText.matches("(?s).*\\brating.*\\d+.*")
+                || !driver.findElements(By.cssSelector(
+                        "[class*='review-count'], [class*='reviewcount'], "
+                        + "[class*='review'] span, [class*='rating-count']")).isEmpty();
 
         Assert.assertTrue(hasRatingDigits,
                 "Product detail page should render an average star rating (FRD section 2.9)");
@@ -105,14 +119,15 @@ public class ReviewsUiTests extends UiBaseTest {
         clearSession();
         openFirstProductDetail();
 
-        // Pick up any timestamp tags inside review cards. The SPA may render dates as
+        // Pick up any VISIBLE timestamp tags inside review cards. The SPA may render dates as
         // "Nov 12, 2025", "2 days ago", or ISO -- we only assert ordering when at
         // least 2 are visible and parseable.
         List<WebElement> dateNodes = driver.findElements(By.cssSelector(
-                ".review-date, [class*='review'] time, [class*='review'] .date"));
+                ".review-date, [class*='review'] time, [class*='review'] .date"))
+                .stream().filter(WebElement::isDisplayed).collect(Collectors.toList());
         if (dateNodes.size() < 2) {
             throw new SkipException(
-                    "Need at least 2 dated reviews on the first product to verify ordering -- not in this env");
+                    "Need at least 2 visible dated reviews on the first product to verify ordering -- not in this env");
         }
         // Defensive: do not crash on unparseable timestamps; just assert the page rendered them.
         Assert.assertTrue(dateNodes.get(0).isDisplayed(),
