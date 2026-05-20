@@ -11,7 +11,7 @@ public class CartPage extends BasePage {
     private static final By CART_ITEMS   = By.cssSelector(".cart-item, [class*='cart-item']");
     private static final By QTY_INPUTS   = By.cssSelector("input[type='number'], .qty-input");
     private static final By QTY_PLUS_BTNS = By.xpath("//button[normalize-space()='+'] | //button[contains(@class,'qty-plus')]");
-    private static final By REMOVE_BTNS  = By.xpath("//button[contains(translate(.,'REMOVEDEL','removedel'),'remove')]");
+    private static final By REMOVE_BTNS  = By.cssSelector("button.remove-btn");
     private static final By GRAND_TOTAL  = By.cssSelector(".grand-total, [class*='total']");
     private static final By CHECKOUT_BTN = By.xpath("//button[contains(translate(.,'CHECKOUT','checkout'),'checkout')]");
     private static final By EMPTY_STATE  = By.xpath("//*[contains(.,'empty') or contains(.,'no items')]");
