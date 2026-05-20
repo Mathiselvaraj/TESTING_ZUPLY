@@ -94,8 +94,11 @@ public class ProductSearchUiTests extends UiBaseTest {
         cards.get(0).click();
         wait.until(ExpectedConditions.urlMatches(".*/products/\\d+.*"));
 
+        // Also check for the image container div (detail-image / detail-image-col) which
+        // is always present even when no image file has been uploaded (shows a placeholder).
         boolean hasImage = !driver.findElements(By.cssSelector(
-                "img.product-image, .product-image img, [class*='product'] img, [class*='gallery'] img")).isEmpty();
+                "img.product-image, .product-image img, [class*='product'] img, [class*='gallery'] img, "
+                + "div.detail-image, div.detail-image-col, [class*='detail-image']")).isEmpty();
         boolean hasDescription = driver.getPageSource().toLowerCase().contains("description")
                 || !driver.findElements(By.cssSelector(".product-description, [class*='description']")).isEmpty();
         boolean hasSellerInfo = driver.getPageSource().toLowerCase().matches("(?s).*\\bseller\\b.*");
