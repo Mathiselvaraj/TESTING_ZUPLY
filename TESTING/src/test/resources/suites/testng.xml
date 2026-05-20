@@ -27,23 +27,23 @@
     </test>
 
     <test name="Cart">
-        <classes><class name="com.cts.mfrp.Zuply.tests.api.CartTests"/></classes>
+        <classes><class name="com.cts.mfrp.zuply.tests.api.CartTests"/></classes>
     </test>
 
     <test name="Orders">
-        <classes><class name="com.cts.mfrp.Zuply.tests.api.OrderTests"/></classes>
+        <classes><class name="com.cts.mfrp.zuply.tests.api.OrderTests"/></classes>
     </test>
 
     <test name="Payment">
-        <classes><class name="com.cts.mfrp.Zuply.tests.api.PaymentTests"/></classes>
+        <classes><class name="com.cts.mfrp.zuply.tests.api.PaymentTests"/></classes>
     </test>
 
     <test name="Seller">
-        <classes><class name="com.cts.mfrp.Zuply.tests.api.SellerTests"/></classes>
+        <classes><class name="com.cts.mfrp.zuply.tests.api.SellerTests"/></classes>
     </test>
 
     <test name="Admin">
-        <classes><class name="com.cts.mfrp.Zuply.tests.api.AdminTests"/></classes>
+        <classes><class name="com.cts.mfrp.zuply.tests.api.AdminTests"/></classes>
     </test>
 
 </suite>
