@@ -2,11 +2,11 @@
 <!DOCTYPE suite SYSTEM "https://testng.org/testng-1.0.dtd">
 <suite name="Zuply UI Auth-Only Verify" verbose="1">
     <listeners>
-        <listener class-name="com.cts.mfrp.Zuply.Utils.ExtentReportListener"/>
+        <listener class-name="com.cts.mfrp.zuply.Utils.ExtentReportListener"/>
     </listeners>
     <parameter name="headless" value="true"/>
     <parameter name="report.subdir" value="ui"/>
     <test name="Auth UI verify">
-        <classes><class name="com.cts.mfrp.Zuply.tests.ui.auth.AuthUiTests"/></classes>
+        <classes><class name="com.cts.mfrp.zuply.tests.ui.auth.AuthUiTests"/></classes>
     </test>
 </suite>

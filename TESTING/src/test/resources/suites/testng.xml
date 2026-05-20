@@ -3,47 +3,47 @@
 <suite name="Zuply API Suite" verbose="1">
 
     <listeners>
-        <listener class-name="com.cts.mfrp.Zuply.Utils.ExtentReportListener"/>
+        <listener class-name="com.cts.mfrp.zuply.Utils.ExtentReportListener"/>
     </listeners>
 
     <test name="Authentication">
-        <classes><class name="com.cts.mfrp.Zuply.tests.api.AuthTests"/></classes>
+        <classes><class name="com.cts.mfrp.zuply.tests.api.AuthTests"/></classes>
     </test>
 
     <test name="Users">
-        <classes><class name="com.cts.mfrp.Zuply.tests.api.UserTests"/></classes>
+        <classes><class name="com.cts.mfrp.zuply.tests.api.UserTests"/></classes>
     </test>
 
     <test name="Products">
-        <classes><class name="com.cts.mfrp.Zuply.tests.api.ProductTests"/></classes>
+        <classes><class name="com.cts.mfrp.zuply.tests.api.ProductTests"/></classes>
     </test>
 
     <test name="Upload">
-        <classes><class name="com.cts.mfrp.Zuply.tests.api.UploadTests"/></classes>
+        <classes><class name="com.cts.mfrp.zuply.tests.api.UploadTests"/></classes>
     </test>
 
     <test name="AI Listing">
-        <classes><class name="com.cts.mfrp.Zuply.tests.api.ListingTests"/></classes>
+        <classes><class name="com.cts.mfrp.zuply.tests.api.ListingTests"/></classes>
     </test>
 
     <test name="Cart">
-        <classes><class name="com.cts.mfrp.Zuply.tests.api.CartTests"/></classes>
+        <classes><class name="com.cts.mfrp.zuply.tests.api.CartTests"/></classes>
     </test>
 
     <test name="Orders">
-        <classes><class name="com.cts.mfrp.Zuply.tests.api.OrderTests"/></classes>
+        <classes><class name="com.cts.mfrp.zuply.tests.api.OrderTests"/></classes>
     </test>
 
     <test name="Payment">
-        <classes><class name="com.cts.mfrp.Zuply.tests.api.PaymentTests"/></classes>
+        <classes><class name="com.cts.mfrp.zuply.tests.api.PaymentTests"/></classes>
     </test>
 
     <test name="Seller">
-        <classes><class name="com.cts.mfrp.Zuply.tests.api.SellerTests"/></classes>
+        <classes><class name="com.cts.mfrp.zuply.tests.api.SellerTests"/></classes>
     </test>
 
     <test name="Admin">
-        <classes><class name="com.cts.mfrp.Zuply.tests.api.AdminTests"/></classes>
+        <classes><class name="com.cts.mfrp.zuply.tests.api.AdminTests"/></classes>
     </test>
 
 </suite>

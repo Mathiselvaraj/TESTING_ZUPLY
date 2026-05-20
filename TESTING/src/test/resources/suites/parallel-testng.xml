@@ -3,21 +3,21 @@
 <suite name="Zuply API Suite (parallel)" parallel="classes" thread-count="4" verbose="1">
 
     <listeners>
-        <listener class-name="com.cts.mfrp.Zuply.Utils.ExtentReportListener"/>
+        <listener class-name="com.cts.mfrp.zuply.Utils.ExtentReportListener"/>
     </listeners>
 
     <test name="All API Modules">
         <classes>
-            <class name="com.cts.mfrp.Zuply.tests.api.AuthTests"/>
-            <class name="com.cts.mfrp.Zuply.tests.api.UserTests"/>
-            <class name="com.cts.mfrp.Zuply.tests.api.ProductTests"/>
-            <class name="com.cts.mfrp.Zuply.tests.api.UploadTests"/>
-            <class name="com.cts.mfrp.Zuply.tests.api.ListingTests"/>
-            <class name="com.cts.mfrp.Zuply.tests.api.CartTests"/>
-            <class name="com.cts.mfrp.Zuply.tests.api.OrderTests"/>
-            <class name="com.cts.mfrp.Zuply.tests.api.PaymentTests"/>
-            <class name="com.cts.mfrp.Zuply.tests.api.SellerTests"/>
-            <class name="com.cts.mfrp.Zuply.tests.api.AdminTests"/>
+            <class name="com.cts.mfrp.zuply.tests.api.AuthTests"/>
+            <class name="com.cts.mfrp.zuply.tests.api.UserTests"/>
+            <class name="com.cts.mfrp.zuply.tests.api.ProductTests"/>
+            <class name="com.cts.mfrp.zuply.tests.api.UploadTests"/>
+            <class name="com.cts.mfrp.zuply.tests.api.ListingTests"/>
+            <class name="com.cts.mfrp.zuply.tests.api.CartTests"/>
+            <class name="com.cts.mfrp.zuply.tests.api.OrderTests"/>
+            <class name="com.cts.mfrp.zuply.tests.api.PaymentTests"/>
+            <class name="com.cts.mfrp.zuply.tests.api.SellerTests"/>
+            <class name="com.cts.mfrp.zuply.tests.api.AdminTests"/>
         </classes>
     </test>
 
