@@ -120,11 +120,9 @@ public class CartUiTests extends UiBaseTest {
         if (before == 0) {
             throw new SkipException("Cart did not receive the seeded item -- nothing to remove");
         }
-        try {
-            cart.removeFirst();
-        } catch (Exception e) {
-            throw new SkipException("Remove control not present in this SPA build: " + e.getMessage());
-        }
+        // Do NOT swallow the exception: if the Remove button is absent the test must FAIL
+        // (not skip) because FRD section 2.4 mandates "Remove item individually" as a cart action.
+        cart.removeFirst();
         waitAfterAction();
         Assert.assertTrue(cart.itemCount() < before,
                 "Cart item count should decrease after Remove click -- was " + before + ", now " + cart.itemCount());
