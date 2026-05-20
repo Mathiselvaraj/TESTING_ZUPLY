@@ -135,6 +135,58 @@ public class ReviewsUiTests extends UiBaseTest {
     }
 
     /**
+     * AD_TC_RV005 -- Review submission date must be displayed in a human-readable format
+     * (e.g. "May 20, 2026" or "2 hours ago"), NOT as a raw database timestamp.
+     *
+     * The app currently stores and renders the review date directly from the backend as
+     * a raw ISO-style database timestamp (e.g. "2026-05-20 11:06:48"). This is not a
+     * user-friendly format and violates the FRD section 2.9 requirement that all dates
+     * are shown in a readable form.
+     *
+     * THIS TEST IS EXPECTED TO FAIL until the frontend formats the date properly.
+     */
+    @Test(description = "AD_TC_RV005 -- ReviewDateHumanReadableFormat [BUG]")
+    public void rv005_reviewDateHumanReadableFormat() {
+        clearSession();
+        openFirstProductDetail();
+
+        List<WebElement> dateElements = driver.findElements(By.cssSelector(".review-date"));
+        if (dateElements.isEmpty()) {
+            throw new SkipException("No .review-date elements found -- cannot verify date format (no reviews in this env)");
+        }
+
+        // Grab the first visible date text
+        String dateText = dateElements.stream()
+                .filter(WebElement::isDisplayed)
+                .map(e -> e.getText().trim())
+                .filter(t -> !t.isEmpty())
+                .findFirst()
+                .orElse("");
+
+        if (dateText.isEmpty()) {
+            throw new SkipException("Review date element is present but has no visible text -- cannot verify format");
+        }
+
+        // A raw database timestamp looks like "2026-05-20 11:06:48" (YYYY-MM-DD HH:MM:SS).
+        // The app must NOT show this raw format to users.
+        boolean isRawDatabaseTimestamp = dateText.matches("\\d{4}-\\d{2}-\\d{2} \\d{2}:\\d{2}:\\d{2}");
+
+        // A human-readable date looks like "May 20, 2026", "20/05/2026", "2 hours ago", etc.
+        boolean isHumanReadable = !isRawDatabaseTimestamp && (
+                dateText.matches("(?i).*(jan|feb|mar|apr|may|jun|jul|aug|sep|oct|nov|dec).*")
+                || dateText.matches(".*\\d+ (day|hour|minute|second).*ago.*")
+                || dateText.matches("\\d{1,2}/\\d{1,2}/\\d{4}.*")
+                || dateText.matches("\\d{1,2}-\\d{1,2}-\\d{4}.*"));
+
+        Assert.assertFalse(isRawDatabaseTimestamp,
+                "BUG: Review date is displayed as a raw database timestamp ('"
+                + dateText + "'). FRD section 2.9 requires dates to be in a "
+                + "human-readable format (e.g. 'May 20, 2026' or '2 hours ago'). "
+                + "The Angular component must pipe the date through DatePipe or a "
+                + "relative-time formatter before rendering.");
+    }
+
+    /**
      * Navigate to /products, click the first product card, and wait for the
      * detail URL pattern. Used as the common opener for every test above.
      */
