@@ -178,8 +178,6 @@ public class AuthUiTests extends UiBaseTest {
         Assert.assertTrue(driver.getCurrentUrl().contains("/register"),
                 "Should remain on /register when phone number is invalid");
     }
-
-<<<<<<< Updated upstream
     /**
      * AD_TC_AU011 -- Password field on the registration form displays a real-time
      * strength indicator (Weak / Medium / Strong) as the user types.
@@ -232,7 +230,7 @@ public class AuthUiTests extends UiBaseTest {
         Assert.assertTrue(rolesPresent >= 2,
                 "Login flow should expose at least 2 of the 3 FRD-mandated role options "
                 + "(Customer / Seller / Admin) -- found " + rolesPresent + " on /login");
-=======
+        }
     /** AD_TC0011 — Validate registration is rejected when email uses an invalid TLD. */
     @Test(description = "AD_TC0011 — InvalidTldEmail")
     public void tc011_invalidTldEmail() {
@@ -349,6 +347,6 @@ public class AuthUiTests extends UiBaseTest {
         } catch (Exception e) {
             throw new AssertionError("JWT header is not valid JSON: " + json, e);
         }
->>>>>>> Stashed changes
+
     }
 }

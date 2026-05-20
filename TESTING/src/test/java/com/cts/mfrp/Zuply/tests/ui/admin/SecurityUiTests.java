@@ -1,4 +1,4 @@
-package com.cts.mfrp.Zuply.tests.ui.admin;
+package com.cts.mfrp.zuply.tests.ui.admin;
 
 
 import com.cts.mfrp.zuply.base.UiBaseTest;
