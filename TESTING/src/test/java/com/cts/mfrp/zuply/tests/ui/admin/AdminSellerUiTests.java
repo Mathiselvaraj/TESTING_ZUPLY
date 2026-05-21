@@ -22,7 +22,34 @@ public class AdminSellerUiTests extends UiBaseTest {
     private static final By LOADING_SPINNER = By.cssSelector("app-loading-spinner");
 
     @BeforeClass(alwaysRun = true, dependsOnMethods = "launchBrowser")
-    public void loginAdmin() { loginAsAdmin(); }
+    public void loginAdmin() {
+        loginAsAdmin();
+        // FIX: must go to "/" first (Netlify 404s on direct sub-route navigation)
+        // then pushState to /admin/sellers, then wait for spinner then filter tabs
+        driver.get("https://zuply.netlify.app/");
+        org.openqa.selenium.support.ui.WebDriverWait setupWait =
+                new org.openqa.selenium.support.ui.WebDriverWait(
+                        driver, java.time.Duration.ofSeconds(45));
+        setupWait.until(org.openqa.selenium.support.ui.ExpectedConditions
+                .presenceOfElementLocated(org.openqa.selenium.By.cssSelector("app-root")));
+        // pushState to sellers route
+        ((org.openqa.selenium.JavascriptExecutor) driver).executeScript(
+                "history.pushState({}, '', '/admin/sellers'); " +
+                        "window.dispatchEvent(new PopStateEvent('popstate'));");
+        // Wait for heading
+        setupWait.until(org.openqa.selenium.support.ui.ExpectedConditions
+                .visibilityOfElementLocated(SELLERS_HEADING));
+        // Wait for spinner to disappear — API fetching sellers data
+        try {
+            setupWait.until(org.openqa.selenium.support.ui.ExpectedConditions
+                    .invisibilityOfElementLocated(
+                            org.openqa.selenium.By.cssSelector("app-loading-spinner")));
+        } catch (Exception ignored) {}
+        // Wait for filter tabs to appear
+        setupWait.until(org.openqa.selenium.support.ui.ExpectedConditions
+                .numberOfElementsToBeMoreThan(
+                        org.openqa.selenium.By.cssSelector("button.filter-tab"), 0));
+    }
 
     /** TC024 — Admin can suspend a seller; page updates automatically after confirmation. */
     @Test(description = "TC024 — AdminSuspendSeller")
@@ -30,15 +57,11 @@ public class AdminSellerUiTests extends UiBaseTest {
         AdminSellersPage page = new AdminSellersPage(driver);
 
         WebDriverWait wait     = new WebDriverWait(driver, Duration.ofSeconds(10));
-        // FIX: increased to 30s — non-headless confirmed filter tabs take longer
-        // to load after history.pushState navigation on the sellers page
         WebDriverWait longWait = new WebDriverWait(driver, Duration.ofSeconds(30));
 
-        // Step 1 — open page and wait for heading
+        // Step 1 — open sellers page (filter tabs already loaded in @BeforeClass)
         page.open();
         wait.until(ExpectedConditions.visibilityOfElementLocated(SELLERS_HEADING));
-
-        // Step 2 — wait for filter tabs (takes longer after pushState navigation)
         longWait.until(ExpectedConditions.numberOfElementsToBeMoreThan(FILTER_TABS, 0));
 
         // Step 3 — select Approved filter

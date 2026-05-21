@@ -3,6 +3,9 @@ package com.cts.mfrp.zuply.pages;
 import org.openqa.selenium.By;
 import org.openqa.selenium.WebDriver;
 import org.openqa.selenium.support.ui.ExpectedConditions;
+import org.openqa.selenium.support.ui.WebDriverWait;
+
+import java.time.Duration;
 
 /** Login page at {@code /login}. */
 public class LoginPage extends BasePage {
@@ -23,11 +26,16 @@ public class LoginPage extends BasePage {
 
     /** Convenience: fill + submit + wait for navigation away from /login. */
     public void loginAs(String email, String password) {
-        // FIX: wait for Angular to fully bind the form before interacting
-        // Without this, headless cold-start runs type into unbound inputs
-        // and login silently fails — URL stays on /login causing TimeoutException
-        wait.until(ExpectedConditions.elementToBeClickable(LOGIN_BTN));
-        enterEmail(email).enterPassword(password).submit();
+        // FIX: increased to 15s — button renders but stays disabled while Angular
+        // initialises the form; 10s is not enough under load in the merged suite
+        new WebDriverWait(driver, Duration.ofSeconds(15))
+                .until(ExpectedConditions.elementToBeClickable(LOGIN_BTN));
+        enterEmail(email).enterPassword(password);
+        // FIX: second wait after typing — Angular re-validates on input and briefly
+        // disables the button; submit() must not fire until it is enabled again
+        new WebDriverWait(driver, Duration.ofSeconds(5))
+                .until(ExpectedConditions.elementToBeClickable(LOGIN_BTN));
+        submit();
         wait.until(ExpectedConditions.not(ExpectedConditions.urlContains("/login")));
     }
 

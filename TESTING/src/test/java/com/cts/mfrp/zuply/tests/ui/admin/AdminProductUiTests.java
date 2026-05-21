@@ -2,6 +2,7 @@ package com.cts.mfrp.zuply.tests.ui.admin;
 
 import com.cts.mfrp.zuply.base.UiBaseTest;
 import com.cts.mfrp.zuply.pages.AdminProductsPage;
+import org.openqa.selenium.Alert;
 import org.openqa.selenium.By;
 import org.openqa.selenium.support.ui.ExpectedConditions;
 import org.openqa.selenium.support.ui.WebDriverWait;
@@ -112,27 +113,39 @@ public class AdminProductUiTests extends UiBaseTest {
         // Step 4 — reject first product
         page.rejectFirst();
 
-        // Step 5 — wait for spinner and tabs to reload
+        // Step 5 — handle browser confirm dialog for reject
+        // UI confirmed: reject shows "Reject this product?" dialog
+        try {
+            new WebDriverWait(driver, Duration.ofSeconds(5))
+                    .until(ExpectedConditions.alertIsPresent());
+            Alert alert = driver.switchTo().alert();
+            System.out.println("Reject dialog: " + alert.getText());
+            alert.accept();
+        } catch (Exception ignored) {
+            System.out.println("No reject dialog appeared");
+        }
+
+        // Step 6 — wait for spinner and tabs to reload
         try { wait.until(ExpectedConditions.invisibilityOfElementLocated(LOADING_SPINNER)); }
         catch (Exception ignored) {}
         longWait.until(ExpectedConditions.numberOfElementsToBeMoreThan(FILTER_TABS, 0));
         waitAfterAction();
 
-        // Step 6 — wait for Pending Review count to decrease by 1
+        // Step 7 — wait for Pending Review count to decrease by 1
         longWait.until(d ->
                 page.getFilterCount(AdminProductsPage.Filter.PENDING_REVIEW) == pendingBefore - 1);
 
-        // Step 7 — assert page still loaded
+        // Step 8 — assert page still loaded
         Assert.assertTrue(page.isLoaded(),
                 "Admin products page should remain loaded after reject");
 
-        // Step 8 — assert pending count decreased by 1
+        // Step 9 — assert pending count decreased by 1
         Assert.assertEquals(
                 page.getFilterCount(AdminProductsPage.Filter.PENDING_REVIEW),
                 pendingBefore - 1,
                 "Pending Review count should decrease by 1 after rejection");
 
-        // Step 9 — verify rejected count increased by 1
+        // Step 10 — verify rejected count increased by 1
         int rejectedAfter = page.getFilterCount(AdminProductsPage.Filter.REJECTED);
         Assert.assertTrue(rejectedAfter >= 1,
                 "Rejected tab count should be at least 1 after rejection");

@@ -104,15 +104,16 @@ public class AdminDashboardPage extends BasePage {
      */
     public void openAndWaitForData() {
         open();
-        // Wait for pending-section to be present first
+        // Wait for pending-section to be present (max 15s)
         try {
-            new org.openqa.selenium.support.ui.WebDriverWait(driver, java.time.Duration.ofSeconds(20))
+            new org.openqa.selenium.support.ui.WebDriverWait(driver, java.time.Duration.ofSeconds(15))
                     .until(org.openqa.selenium.support.ui.ExpectedConditions
                             .presenceOfElementLocated(SELLERS_PENDING_SECTION));
         } catch (Exception ignored) {}
-        // Then wait for badge to show non-zero value
+        // Wait for sellers badge to show non-zero (max 15s)
+        // If still 0 after 15s, there are genuinely no pending sellers — return fast
         try {
-            new org.openqa.selenium.support.ui.WebDriverWait(driver, java.time.Duration.ofSeconds(30))
+            new org.openqa.selenium.support.ui.WebDriverWait(driver, java.time.Duration.ofSeconds(15))
                     .until(d -> {
                         try {
                             String t = d.findElement(SELLERS_PENDING_BADGE).getText().trim();
@@ -120,9 +121,9 @@ public class AdminDashboardPage extends BasePage {
                         } catch (Exception e) { return false; }
                     });
         } catch (Exception ignored) {}
-        // Same for products
+        // Wait for products badge to show non-zero (max 15s)
         try {
-            new org.openqa.selenium.support.ui.WebDriverWait(driver, java.time.Duration.ofSeconds(30))
+            new org.openqa.selenium.support.ui.WebDriverWait(driver, java.time.Duration.ofSeconds(15))
                     .until(d -> {
                         try {
                             String t = d.findElement(PRODUCTS_PENDING_BADGE).getText().trim();
@@ -168,11 +169,11 @@ public class AdminDashboardPage extends BasePage {
     public int sellersPendingCount() {
         try {
             // Wait for badge to appear
-            new org.openqa.selenium.support.ui.WebDriverWait(driver, java.time.Duration.ofSeconds(20))
+            new org.openqa.selenium.support.ui.WebDriverWait(driver, java.time.Duration.ofSeconds(15))
                     .until(org.openqa.selenium.support.ui.ExpectedConditions
                             .presenceOfElementLocated(SELLERS_PENDING_BADGE));
             // Wait for badge to show non-zero (real data loaded) or stabilise after 10s
-            new org.openqa.selenium.support.ui.WebDriverWait(driver, java.time.Duration.ofSeconds(30))
+            new org.openqa.selenium.support.ui.WebDriverWait(driver, java.time.Duration.ofSeconds(15))
                     .until(d -> {
                         try {
                             String t = d.findElement(SELLERS_PENDING_BADGE).getText().trim();
@@ -205,10 +206,10 @@ public class AdminDashboardPage extends BasePage {
      *  Badge renders with 0 first then updates — wait for non-zero or stable value */
     public int productsPendingCount() {
         try {
-            new org.openqa.selenium.support.ui.WebDriverWait(driver, java.time.Duration.ofSeconds(20))
+            new org.openqa.selenium.support.ui.WebDriverWait(driver, java.time.Duration.ofSeconds(15))
                     .until(org.openqa.selenium.support.ui.ExpectedConditions
                             .presenceOfElementLocated(PRODUCTS_PENDING_BADGE));
-            new org.openqa.selenium.support.ui.WebDriverWait(driver, java.time.Duration.ofSeconds(30))
+            new org.openqa.selenium.support.ui.WebDriverWait(driver, java.time.Duration.ofSeconds(15))
                     .until(d -> {
                         try {
                             String t = d.findElement(PRODUCTS_PENDING_BADGE).getText().trim();
