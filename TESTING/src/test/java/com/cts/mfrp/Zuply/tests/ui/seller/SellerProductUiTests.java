@@ -221,4 +221,27 @@ public class SellerProductUiTests extends UiBaseTest {
                 "PENDING seller must NOT appear in public listing before admin approval. "
                 + "Before: " + countBefore + ", After: " + countAfter);
     }
+    /**
+     * TC032 [NEGATIVE] — SellerDashboardRevenueCard
+     * Validates that the Seller Dashboard displays a 'Total Revenue' stat card.
+     * Currently expected to FAIL as the UI only renders 4 cards (Total Products,
+     * Total Orders, Pending Orders, Approved Products).
+     */
+    @Test(description = "TC032 [NEGATIVE] — SellerDashboardRevenueCard")
+    public void tc032_sellerDashboardRevenueCard() {
+        SellerDashboardPage dashboard = new SellerDashboardPage(driver);
+        dashboard.open();
+
+        Assert.assertTrue(dashboard.isLoaded(), "Seller dashboard should be loaded");
+
+        // The dashboard currently has 4 cards. If the developer adds Revenue, this should be 5.
+        // We do a soft check on the total count, but explicitly fail if Revenue is missing.
+        try {
+            String revenueText = dashboard.totalRevenue();
+            Assert.assertNotNull(revenueText, "Total Revenue stat card value should not be null");
+        } catch (IllegalStateException e) {
+            Assert.fail("The 'Total Revenue' stat card is missing from the Seller Dashboard! " +
+                    "Current cards found: " + dashboard.statCardCount());
+        }
+    }
 }
