@@ -6,6 +6,7 @@ import org.openqa.selenium.WebDriver;
 /** Admin landing page at {@code /admin/dashboard}. */
 public class AdminDashboardPage extends BasePage {
 
+    private static final By ACCOUNT_BUTTON   = By.cssSelector(".account-btn");
     private static final By ROLE_HEADER     = By.cssSelector(".dh-role");
     private static final By NAME_HEADER     = By.cssSelector(".dh-name");
     private static final By SELLERS_LINK    = By.cssSelector("a[routerlink='/admin/sellers']");
@@ -17,10 +18,10 @@ public class AdminDashboardPage extends BasePage {
     public AdminDashboardPage(WebDriver driver) { super(driver); }
 
     @Override public String route() { return "/admin/dashboard"; }
-    @Override protected By readyMarker() { return ROLE_HEADER; }
+    @Override protected By readyMarker() { return SELLERS_LINK; }
 
-    public String adminName() { return text(NAME_HEADER); }
-    public String roleLabel() { return text(ROLE_HEADER); }
+    public String adminName() { click(ACCOUNT_BUTTON); return text(NAME_HEADER); }
+    public String roleLabel() { click(ACCOUNT_BUTTON); return text(ROLE_HEADER); }
 
     public void goToSellers()  { click(SELLERS_LINK); }
     public void goToProducts() { click(PRODUCTS_LINK); }

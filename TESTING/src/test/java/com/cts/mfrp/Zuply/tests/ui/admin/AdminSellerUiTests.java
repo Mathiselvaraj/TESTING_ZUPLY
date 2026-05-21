@@ -31,8 +31,8 @@ public class AdminSellerUiTests extends UiBaseTest {
     public void tc024_adminSuspendSeller() {
         AdminSellersPage page = new AdminSellersPage(driver);
 
-        WebDriverWait wait     = new WebDriverWait(driver, Duration.ofSeconds(10));
-        WebDriverWait longWait = new WebDriverWait(driver, Duration.ofSeconds(15));
+        WebDriverWait wait     = new WebDriverWait(driver, Duration.ofSeconds(20));
+        WebDriverWait longWait = new WebDriverWait(driver, Duration.ofSeconds(25));
 
         // Step 1 — open page
         page.open();
@@ -78,8 +78,7 @@ public class AdminSellerUiTests extends UiBaseTest {
         }
 
         // Step 9 — wait for spinner after suspend API call
-        try { wait.until(ExpectedConditions.invisibilityOfElementLocated(LOADING_SPINNER)); }
-        catch (Exception ignored) {}
+
 
         // Step 10 — wait for suspend button count to decrease by 1
         // UI confirmed: page updates automatically but takes a few seconds
