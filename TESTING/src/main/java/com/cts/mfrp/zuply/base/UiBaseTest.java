@@ -2,7 +2,7 @@ package com.cts.mfrp.zuply.base;
 
 import com.cts.mfrp.zuply.pages.LoginPage;
 import com.cts.mfrp.zuply.pages.RegisterPage;
-import com.cts.mfrp.zuply.Utils.DriverFactory;
+import com.cts.mfrp.zuply.utils.DriverFactory;
 import org.openqa.selenium.By;
 import org.openqa.selenium.JavascriptExecutor;
 import org.openqa.selenium.TimeoutException;

@@ -3,7 +3,7 @@
 <suite name="Zuply UI Suite" verbose="1">
 
     <listeners>
-        <listener class-name="com.cts.mfrp.zuply.Utils.ExtentReportListener"/>
+        <listener class-name="com.cts.mfrp.zuply.utils.ExtentReportListener"/>
     </listeners>
 
     <!-- Pass headless=false at runtime (-Dheadless=false) to watch tests run. -->

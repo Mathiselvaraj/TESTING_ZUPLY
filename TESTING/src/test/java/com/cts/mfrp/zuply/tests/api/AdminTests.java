@@ -1,6 +1,6 @@
 package com.cts.mfrp.zuply.tests.api;
 
-import com.cts.mfrp.zuply.Utils.ResponseUtils;
+import com.cts.mfrp.zuply.utils.ResponseUtils;
 import com.cts.mfrp.zuply.base.BaseTest;
 import com.cts.mfrp.zuply.clients.AdminClient;
 import io.restassured.response.Response;

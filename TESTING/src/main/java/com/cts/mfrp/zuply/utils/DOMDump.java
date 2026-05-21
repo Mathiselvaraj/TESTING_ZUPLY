@@ -1,4 +1,4 @@
-package com.cts.mfrp.zuply.Utils;
+package com.cts.mfrp.zuply.utils;
 
 import org.openqa.selenium.By;
 import org.openqa.selenium.JavascriptExecutor;

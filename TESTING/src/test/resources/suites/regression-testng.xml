@@ -12,7 +12,7 @@
 <suite name="Zuply Regression UI Suite" verbose="1">
 
     <listeners>
-        <listener class-name="com.cts.mfrp.zuply.Utils.ExtentReportListener"/>
+        <listener class-name="com.cts.mfrp.zuply.utils.ExtentReportListener"/>
     </listeners>
 
     <parameter name="headless" value="true"/>

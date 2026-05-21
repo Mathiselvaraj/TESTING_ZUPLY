@@ -1,4 +1,4 @@
-package com.cts.mfrp.zuply.Utils;
+package com.cts.mfrp.zuply.utils;
 
 import com.cts.mfrp.zuply.constants.AppConstants;
 import org.apache.poi.ss.usermodel.Row;

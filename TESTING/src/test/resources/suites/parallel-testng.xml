@@ -3,7 +3,7 @@
 <suite name="Zuply API Suite (parallel)" parallel="classes" thread-count="4" verbose="1">
 
     <listeners>
-        <listener class-name="com.cts.mfrp.zuply.Utils.ExtentReportListener"/>
+        <listener class-name="com.cts.mfrp.zuply.utils.ExtentReportListener"/>
     </listeners>
 
     <test name="All API Modules">

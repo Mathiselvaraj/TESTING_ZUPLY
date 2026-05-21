@@ -13,8 +13,8 @@ import java.util.List;
  * Total Products, Total Orders, Pending Orders, Approved Products.
  */
 public class SellerDashboardPage extends BasePage {
-
-    private static final By STATS_GRID    = By.cssSelector(".grid-4.stats-grid, .stats-grid");
+    private static final By STATS_GRID = By.cssSelector(".grid-4, .stat-card, h1, .dashboard-header");
+//    private static final By STATS_GRID    = By.cssSelector(".grid-4.stats-grid, .stats-grid");
     private static final By STAT_CARDS    = By.cssSelector(".stat-card");
     private static final By UPLOAD_LINK   = By.cssSelector("a[routerlink='/seller/upload']");
     private static final By PRODUCTS_LINK = By.cssSelector("a[routerlink='/seller/products']");
@@ -24,6 +24,10 @@ public class SellerDashboardPage extends BasePage {
 
     @Override public String route() { return "/seller/dashboard"; }
     @Override protected By readyMarker() { return STATS_GRID; }
+
+    public String totalRevenue() {
+        return statValue("Total Revenue");
+    }
 
     /**
      * Click any anchor on the dashboard that points at the given route. Tries
