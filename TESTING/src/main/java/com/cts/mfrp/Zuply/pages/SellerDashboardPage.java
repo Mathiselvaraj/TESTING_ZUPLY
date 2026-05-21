@@ -25,6 +25,9 @@ public class SellerDashboardPage extends BasePage {
     @Override public String route() { return "/seller/dashboard"; }
     @Override protected By readyMarker() { return STATS_GRID; }
 
+    public String totalRevenue() {
+        return statValue("Total Revenue");
+    }
     /**
      * Click any anchor on the dashboard that points at the given route. Tries
      * several selector shapes because the SPA may render the quick-action card
