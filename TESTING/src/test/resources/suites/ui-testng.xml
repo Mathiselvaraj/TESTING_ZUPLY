@@ -69,4 +69,8 @@
         <classes><class name="com.cts.mfrp.zuply.tests.ui.admin.SecurityUiTests"/></classes>
     </test>
 
+    <test name="Admin Dashboard UI (TC050-TC069)">
+        <classes><class name="com.cts.mfrp.zuply.tests.ui.admin.AdminDashboardUiTests"/></classes>
+    </test>
+
 </suite>
