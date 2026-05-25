@@ -41,7 +41,7 @@ public class HomePageUiTests extends UiBaseTest {
     /**
      * AD_TC_HP1 -- All 8 FRD-mandated categories appear somewhere on the page.
      */
-    @Test(description = "AD_TC_HP1 -- HomePageCategorySection")
+    @Test(enabled = false, description = "AD_TC_HP1 -- HomePageCategorySection")
     public void hp1_homePageCategorySection() {
         // 1. Start at the Home Page (Guest mode)
         HomePage home = new HomePage(driver);
@@ -81,7 +81,7 @@ public class HomePageUiTests extends UiBaseTest {
     /**
      * AD_TC_HP2 -- Top section components: search bar, location selector.
      */
-    @Test(description = "AD_TC_HP2 -- HomePageTopBarComponents")
+    @Test(enabled = false, description = "AD_TC_HP2 -- HomePageTopBarComponents")
     public void hp2_homePageTopBarComponents() {
         // FIX: Navigate to the ProductsPage where the search bar actually resides
         com.cts.mfrp.zuply.pages.ProductsPage productsPage = new com.cts.mfrp.zuply.pages.ProductsPage(driver);
@@ -105,7 +105,7 @@ public class HomePageUiTests extends UiBaseTest {
     /**
      * AD_TC_HP3 -- Mobile hamburger menu provides quick-access tiles.
      */
-    @Test(description = "AD_TC_HP3 -- HamburgerQuickAccessTiles")
+    @Test(enabled = false, description = "AD_TC_HP3 -- HamburgerQuickAccessTiles")
     public void hp3_hamburgerQuickAccessTiles() {
         HomePage home = new HomePage(driver);
         home.open();

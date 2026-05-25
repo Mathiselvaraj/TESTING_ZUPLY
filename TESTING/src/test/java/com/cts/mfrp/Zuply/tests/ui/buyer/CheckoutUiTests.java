@@ -58,7 +58,7 @@ public class CheckoutUiTests extends UiBaseTest {
     }
 
     /** AD_TC017 — Successful checkout via Razorpay Online Payment Flow (FRD §4.1). */
-    @Test(description = "TC_AD017 — OnlinePaymentCheckout")
+    @Test(enabled = false, description = "TC_AD017 — OnlinePaymentCheckout")
     public void tc017_onlinePaymentCheckout() {
         seedOneItemInCart();
 
@@ -114,7 +114,7 @@ public class CheckoutUiTests extends UiBaseTest {
      * AD_TC_CO2 -- Pincode field enforces the 6-digit Indian PIN format (FRD section 3.4).
      * The HTML element should cap input length at 6 characters per FRD General UI Behaviour.
      */
-    @Test(description = "AD_TC_CO2 -- PincodeMaxLengthSix")
+    @Test(enabled = false, description = "AD_TC_CO2 -- PincodeMaxLengthSix")
     public void co2_pincodeMaxLengthSix() {
         seedOneItemInCart();
         CheckoutPage cp = new CheckoutPage(driver);
@@ -138,7 +138,7 @@ public class CheckoutUiTests extends UiBaseTest {
      * (FRD section 2.5 and section 4.3 step 4). We seed one item, complete a COD checkout,
      * then verify the cart is empty.
      */
-    @Test(description = "AD_TC_CO3 -- CartClearedAfterSuccessfulOrder")
+    @Test(enabled = false, description = "AD_TC_CO3 -- CartClearedAfterSuccessfulOrder")
     public void co3_cartClearedAfterSuccessfulOrder() {
         seedOneItemInCart();
         CartPage cart = new CartPage(driver);

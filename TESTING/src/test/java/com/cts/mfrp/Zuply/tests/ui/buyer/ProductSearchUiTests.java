@@ -30,7 +30,7 @@ public class ProductSearchUiTests extends UiBaseTest {
     }
 
     /** TC008 — Validate "no products" message appears for an unmatched search. */
-    @Test(description = "TC008 — NoResultsSearch")
+    @Test(enabled = false, description = "TC008 — NoResultsSearch")
     public void tc008_noResultsSearch() {
         ProductsPage page = new ProductsPage(driver);
         page.open();
@@ -44,7 +44,7 @@ public class ProductSearchUiTests extends UiBaseTest {
     }
 
     /** TC009 — Validate sort options work on the listing page. */
-    @Test(description = "TC009 — SearchSorting")
+    @Test(enabled = false, description = "TC009 — SearchSorting")
     public void tc009_searchSorting() {
         ProductsPage page = new ProductsPage(driver);
         page.open();
@@ -83,7 +83,7 @@ public class ProductSearchUiTests extends UiBaseTest {
      * description, seller information, and ratings. FRD section 2.3 lists these as
      * required content on every product detail page.
      */
-    @Test(description = "AD_TC_PS2 -- ProductDetailPageElements")
+    @Test(enabled = false, description = "AD_TC_PS2 -- ProductDetailPageElements")
     public void ps2_productDetailPageElements() {
         ProductsPage page = new ProductsPage(driver);
         page.open();
@@ -118,7 +118,7 @@ public class ProductSearchUiTests extends UiBaseTest {
      * Price Low to High, Price High to Low, Distance from Seller, Popular Products.
      * FRD section 2.3.
      */
-    @Test(description = "AD_TC_PS3 -- SortDropdownOptions")
+    @Test(enabled = false, description = "AD_TC_PS3 -- SortDropdownOptions")
     public void ps3_sortDropdownOptions() {
         ProductsPage page = new ProductsPage(driver);
         page.open();

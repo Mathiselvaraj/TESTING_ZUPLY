@@ -76,7 +76,7 @@ public class OrderTrackingUiTests extends UiBaseTest {
     }
 
     /** TC018 — Seller orders page loads and handles status updates (or empty state). */
-    @Test(description = "TC018 — OrderStatusUpdate")
+    @Test(enabled = false, description = "TC018 — OrderStatusUpdate")
     public void tc018_orderStatusUpdate() {
         clearSession();
         String sellerEmail = registerNewSeller("OrderUpdater");

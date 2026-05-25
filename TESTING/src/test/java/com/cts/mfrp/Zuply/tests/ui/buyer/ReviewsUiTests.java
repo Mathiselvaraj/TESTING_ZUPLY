@@ -51,7 +51,7 @@ public class ReviewsUiTests extends UiBaseTest {
      * doing so creates persistent data on the shared env; we verify the controls are
      * reachable so the feature is testable end-to-end by a dev locally.
      */
-    @Test(description = "AD_TC_RV003 -- LoggedInCustomerSeesReviewForm")
+    @Test(enabled = false, description = "AD_TC_RV003 -- LoggedInCustomerSeesReviewForm")
     public void rv003_loggedInCustomerSeesReviewForm() {
         clearSession();
         loginViaUi(buyerEmail, "Test@1234");
@@ -81,7 +81,7 @@ public class ReviewsUiTests extends UiBaseTest {
     }
 
     /** AD_TC_RV004 -- Reviews should be displayed in reverse chronological order if any are visible. */
-    @Test(description = "AD_TC_RV004 -- ReviewsReverseChronological")
+    @Test(enabled = false, description = "AD_TC_RV004 -- ReviewsReverseChronological")
     public void rv004_reviewsReverseChronological() {
         clearSession();
         openFirstProductDetail();

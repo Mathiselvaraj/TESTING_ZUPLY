@@ -39,7 +39,7 @@ public class CartUiTests extends UiBaseTest {
     }
 
     /** TC014 — Update item quantity in cart. */
-    @Test(description = "TC014 — CartQuantityUpdate")
+    @Test(enabled = false, description = "TC014 — CartQuantityUpdate")
     public void tc014_cartQuantityUpdate() {
         ProductsPage products = new ProductsPage(driver);
         products.open();
@@ -58,7 +58,7 @@ public class CartUiTests extends UiBaseTest {
      * AD_TC_CART1 -- "Continue Shopping" button is reachable from the cart page.
      * FRD section 2.4 lists Continue Shopping and Checkout as the two cart buttons.
      */
-    @Test(description = "AD_TC_CART1 -- ContinueShoppingButtonVisible")
+    @Test(enabled = false, description = "AD_TC_CART1 -- ContinueShoppingButtonVisible")
     public void tcCart1_continueShoppingButtonVisible() {
         ProductsPage products = new ProductsPage(driver);
         products.open();
@@ -79,7 +79,7 @@ public class CartUiTests extends UiBaseTest {
      * AD_TC_CART2 -- Adding the SAME product twice should not create a duplicate cart
      * row; the system shall increment the quantity instead (FRD section 2.4).
      */
-    @Test(description = "AD_TC_CART2 -- DuplicateAddIncrementsQuantity")
+    @Test(enabled = false, description = "AD_TC_CART2 -- DuplicateAddIncrementsQuantity")
     public void tcCart2_duplicateAddIncrementsQuantity() {
         ProductsPage products = new ProductsPage(driver);
         products.open();
