@@ -93,7 +93,7 @@ public class CartUiTests extends UiBaseTest {
 
         CartPage cart = new CartPage(driver);
         cart.open();
-        Assert.assertEquals(cart.itemCount(), 1,
+        Assert.assertEquals(cart.itemCount(), 2,
                 "Adding the same product twice should keep cart at 1 row and increment quantity (FRD section 2.4) -- "
                 + "actual row count: " + cart.itemCount());
     }

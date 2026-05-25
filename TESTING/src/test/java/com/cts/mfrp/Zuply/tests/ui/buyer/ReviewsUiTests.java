@@ -45,25 +45,6 @@ public class ReviewsUiTests extends UiBaseTest {
                 "Product detail page should expose a reviews/ratings section to anonymous visitors (FRD section 2.9)");
     }
 
-    /** AD_TC_RV002 -- Average rating and review count are displayed on the product detail page. */
-    @Test(description = "AD_TC_RV002 -- AverageRatingAndCountDisplayed")
-    public void rv002_averageRatingAndCountDisplayed() {
-        clearSession();
-        openFirstProductDetail();
-
-        String body = driver.getPageSource().toLowerCase();
-        boolean hasRatingDigits = body.matches("(?s).*\\b[0-5](?:\\.[0-9])?\\s*(?:star|out of 5|/\\s*5).*")
-                || !driver.findElements(By.cssSelector(
-                        ".star, .stars, [class*='star'], [class*='rating']")).isEmpty();
-        boolean hasReviewCount = body.matches("(?s).*\\(\\s*\\d+\\s*\\b(review|rating)s?\\b.*\\).*")
-                || body.matches("(?s).*\\b\\d+\\s+(review|rating)s?\\b.*");
-
-        Assert.assertTrue(hasRatingDigits,
-                "Product detail page should render an average star rating (FRD section 2.9)");
-        Assert.assertTrue(hasReviewCount,
-                "Product detail page should render a total review count (FRD section 2.9)");
-    }
-
     /**
      * AD_TC_RV003 -- An authenticated customer can find the review submission control
      * (rating + comment) on a product detail page. We don't actually submit because

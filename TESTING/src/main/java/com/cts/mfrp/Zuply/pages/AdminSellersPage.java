@@ -17,16 +17,10 @@ public class AdminSellersPage extends BasePage {
     private static final By REJECT_BTNS  = By.xpath("//button[contains(@class,'btn-warning') and normalize-space()='Reject']");
     private static final By SUSPEND_BTNS = By.xpath("//button[contains(@class,'btn-danger') and normalize-space()='Suspend']");
 
-    // FIX: DevTools confirmed sellers are rendered as cards inside div.sellers-table
-    // There is NO <table> element — class name is misleading
-    private static final By TABLE_ROWS   = By.cssSelector("div.sellers-table > div");
-
-    // Loading spinner — present while API call is in progress after filter click
+    // DevTools confirmed sellers are rendered as cards inside div.sellers-table
+    private static final By TABLE_ROWS      = By.cssSelector("div.sellers-table > div");
     private static final By LOADING_SPINNER = By.cssSelector("app-loading-spinner");
 
-    // FIX: Added SUSPENDED and PENDING_APPROVAL to match actual UI tab labels
-    // FIX: Each value carries a tabLabel string used in selectFilter()
-    //      so matching works against "ALL SELLERS 74", "PENDING APPROVAL 17" etc.
     public enum Filter {
         ALL_SELLERS("ALL SELLERS"),
         APPROVED("APPROVED"),
@@ -40,18 +34,14 @@ public class AdminSellersPage extends BasePage {
 
     public AdminSellersPage(WebDriver driver) { super(driver); }
 
-    @Override public String route() { return "/admin/sellers"; }
-    @Override protected By readyMarker() { return HEADING; }
+    @Override public String route()        { return "/admin/sellers"; }
+    @Override protected By readyMarker()  { return HEADING; }
 
     public AdminSellersPage search(String text) { type(SEARCH_INPUT, text); return this; }
 
-    // FIX: Uses f.tabLabel instead of f.name() so enum values match UI tab text
     public void selectFilter(Filter f) {
         for (WebElement tab : driver.findElements(FILTER_TABS)) {
             if (tab.getText().toUpperCase().contains(f.tabLabel)) {
-                // Filter tabs sit at the top of the page and can be scrolled out of
-                // view after table updates (post-suspend re-render scrolls the page).
-                // Scroll the tab back into view before clicking.
                 scrollAndClick(tab);
                 return;
             }
@@ -59,7 +49,22 @@ public class AdminSellersPage extends BasePage {
         throw new IllegalStateException("Filter tab not found: " + f);
     }
 
-    // FIX: rowCount() now counts div cards inside div.sellers-table (not table rows)
+    /**
+     * Reads the count directly from the filter tab label.
+     * e.g. "Approved 51" → 51, "Suspended 7" → 7
+     * More reliable than counting DOM elements — reflects server-side total
+     * regardless of pagination or how many cards are rendered on screen.
+     */
+    public int getFilterCount(Filter f) {
+        for (WebElement tab : driver.findElements(FILTER_TABS)) {
+            if (tab.getText().toUpperCase().contains(f.tabLabel)) {
+                String numbers = tab.getText().replaceAll("[^0-9]", "").trim();
+                return numbers.isEmpty() ? 0 : Integer.parseInt(numbers);
+            }
+        }
+        throw new IllegalStateException("Filter tab not found: " + f);
+    }
+
     public int rowCount()         { return driver.findElements(TABLE_ROWS).size(); }
     public int approvableCount()  { return driver.findElements(APPROVE_BTNS).size(); }
     public int suspendableCount() { return driver.findElements(SUSPEND_BTNS).size(); }
@@ -69,7 +74,6 @@ public class AdminSellersPage extends BasePage {
     public void rejectFirst()  { scrollAndClick(firstOf(REJECT_BTNS,  "Reject")); }
     public void suspendFirst() { scrollAndClick(firstOf(SUSPEND_BTNS, "Suspend")); }
 
-    /** Returns true if any seller card contains the given name or email. */
     public boolean isSellerVisible(String nameOrEmail) {
         return driver.findElements(TABLE_ROWS).stream()
                 .anyMatch(row -> row.getText().contains(nameOrEmail));
@@ -81,12 +85,6 @@ public class AdminSellersPage extends BasePage {
         return els.get(0);
     }
 
-    /**
-     * Scroll the element to the centre of the viewport then click via JavaScript.
-     * Required because the Zuply chat FAB sits at the bottom-right corner and
-     * intercepts native clicks when an action button lands in that area
-     * (e.g. ElementClickInterceptedException at coordinates like (1115, 890)).
-     */
     private void scrollAndClick(WebElement el) {
         ((JavascriptExecutor) driver).executeScript(
                 "arguments[0].scrollIntoView({block:'center'}); arguments[0].click();", el);
