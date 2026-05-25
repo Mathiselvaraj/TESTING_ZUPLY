@@ -5,88 +5,136 @@ import org.apache.poi.xssf.usermodel.XSSFWorkbook;
 
 import java.io.FileInputStream;
 import java.io.IOException;
+import java.util.ArrayList;
+import java.util.LinkedHashMap;
+import java.util.List;
+import java.util.Map;
 
 /**
- * ExcelUtils — reads test data from Excel (.xlsx) files using Apache POI.
- * Used by @DataProvider to drive data-driven tests.
+ * ExcelUtils — reads test data from .xlsx files via Apache POI for TestNG
+ * {@code @DataProvider}s.
  *
- * Excel format:
- *   Row 0 = Headers (skipped)
- *   Row 1+ = Test data
+ * Sheet contract:
+ *   Row 0  = headers (used as keys for {@link #getTestDataAsMaps})
+ *   Row 1+ = data rows
+ *
+ * Numeric cells are stringified via {@link DataFormatter}, which preserves the
+ * cell's display format — so "9876543210" stays as digits instead of becoming
+ * "9.87654321E9". Blank rows are skipped.
  *
  * Usage:
- *   @DataProvider(name = "loginData")
- *   public Object[][] getData() throws Exception {
+ *   <pre>
+ *   {@literal @}DataProvider(name = "loginData")
+ *   public Object[][] loginData() throws Exception {
  *       return ExcelUtils.getTestData(
- *           "src/test/resources/testdata/LoginData.xlsx", "LoginSheet");
+ *           "src/test/resources/testdata/AuthData.xlsx", "Login");
  *   }
+ *   </pre>
  */
-public class ExcelUtils {
+public final class ExcelUtils {
+
+    private static final DataFormatter FORMATTER = new DataFormatter();
+
+    private ExcelUtils() {}
 
     /**
-     * Read all rows (except header) from the given sheet.
-     * @param filePath  absolute or relative path to .xlsx file
-     * @param sheetName name of the sheet to read
-     * @return 2D Object array for TestNG @DataProvider
+     * Read all data rows (skipping header row 0 and any blank rows) as a 2D
+     * Object matrix — the shape TestNG's {@code @DataProvider} expects.
      */
     public static Object[][] getTestData(String filePath, String sheetName) throws IOException {
-        FileInputStream fis   = new FileInputStream(filePath);
-        Workbook        wb    = new XSSFWorkbook(fis);
-        Sheet           sheet = wb.getSheet(sheetName);
+        try (FileInputStream fis = new FileInputStream(filePath);
+             Workbook wb = new XSSFWorkbook(fis)) {
 
-        if (sheet == null) {
-            throw new RuntimeException("Sheet not found: " + sheetName);
-        }
+            Sheet sheet = requireSheet(wb, sheetName);
+            int cols = sheet.getRow(0).getLastCellNum();
+            List<Object[]> rows = new ArrayList<>();
 
-        int totalRows = sheet.getLastRowNum();        // excludes header row 0
-        int totalCols = sheet.getRow(0).getLastCellNum();
+            for (int r = 1; r <= sheet.getLastRowNum(); r++) {
+                Row row = sheet.getRow(r);
+                if (isBlankRow(row)) continue;
 
-        Object[][] data = new Object[totalRows][totalCols];
-
-        for (int r = 1; r <= totalRows; r++) {
-            Row row = sheet.getRow(r);
-            if (row == null) continue;
-
-            for (int c = 0; c < totalCols; c++) {
-                Cell cell = row.getCell(c);
-                data[r - 1][c] = getCellValueAsString(cell);
+                Object[] data = new Object[cols];
+                for (int c = 0; c < cols; c++) {
+                    data[c] = cellAsString(row.getCell(c));
+                }
+                rows.add(data);
             }
-        }
-
-        wb.close();
-        fis.close();
-        return data;
-    }
-
-    /** Convert any cell type to String */
-    private static String getCellValueAsString(Cell cell) {
-        if (cell == null) return "";
-        switch (cell.getCellType()) {
-            case STRING:  return cell.getStringCellValue().trim();
-            case NUMERIC:
-                if (DateUtil.isCellDateFormatted(cell))
-                    return cell.getLocalDateTimeCellValue().toString();
-                return String.valueOf((long) cell.getNumericCellValue());
-            case BOOLEAN: return String.valueOf(cell.getBooleanCellValue());
-            case FORMULA: return cell.getCellFormula();
-            default:      return "";
+            return rows.toArray(new Object[0][]);
         }
     }
 
     /**
-     * Get a single cell value.
-     * @param filePath  path to xlsx
-     * @param sheetName sheet name
-     * @param row       0-based row index
-     * @param col       0-based column index
+     * Same data, but each row is a {@code Map<header, value>}. Prefer this
+     * when tests reference fields by name — column reorders won't break tests.
+     *
+     * In a {@code @DataProvider}:
+     *   <pre>
+     *   return ExcelUtils.getTestDataAsMaps(path, sheet).stream()
+     *           .map(m -&gt; new Object[]{ m })
+     *           .toArray(Object[][]::new);
+     *   </pre>
      */
+    public static List<Map<String, String>> getTestDataAsMaps(String filePath, String sheetName)
+            throws IOException {
+        try (FileInputStream fis = new FileInputStream(filePath);
+             Workbook wb = new XSSFWorkbook(fis)) {
+
+            Sheet sheet = requireSheet(wb, sheetName);
+            Row header = sheet.getRow(0);
+            int cols = header.getLastCellNum();
+
+            List<String> headers = new ArrayList<>(cols);
+            for (int c = 0; c < cols; c++) {
+                headers.add(cellAsString(header.getCell(c)));
+            }
+
+            List<Map<String, String>> rows = new ArrayList<>();
+            for (int r = 1; r <= sheet.getLastRowNum(); r++) {
+                Row row = sheet.getRow(r);
+                if (isBlankRow(row)) continue;
+
+                Map<String, String> map = new LinkedHashMap<>();
+                for (int c = 0; c < cols; c++) {
+                    map.put(headers.get(c), cellAsString(row.getCell(c)));
+                }
+                rows.add(map);
+            }
+            return rows;
+        }
+    }
+
+    /** Read a single cell by 0-based row/column index. */
     public static String getCellData(String filePath, String sheetName, int row, int col)
             throws IOException {
-        FileInputStream fis   = new FileInputStream(filePath);
-        Workbook        wb    = new XSSFWorkbook(fis);
-        Sheet           sheet = wb.getSheet(sheetName);
-        String          value = getCellValueAsString(sheet.getRow(row).getCell(col));
-        wb.close(); fis.close();
-        return value;
+        try (FileInputStream fis = new FileInputStream(filePath);
+             Workbook wb = new XSSFWorkbook(fis)) {
+            return cellAsString(requireSheet(wb, sheetName).getRow(row).getCell(col));
+        }
+    }
+
+    private static Sheet requireSheet(Workbook wb, String name) {
+        Sheet s = wb.getSheet(name);
+        if (s == null) {
+            throw new IllegalArgumentException("Sheet not found: " + name);
+        }
+        return s;
+    }
+
+    private static String cellAsString(Cell cell) {
+        if (cell == null) return "";
+        if (cell.getCellType() == CellType.FORMULA) {
+            FormulaEvaluator evaluator = cell.getSheet().getWorkbook()
+                    .getCreationHelper().createFormulaEvaluator();
+            return FORMATTER.formatCellValue(cell, evaluator).trim();
+        }
+        return FORMATTER.formatCellValue(cell).trim();
+    }
+
+    private static boolean isBlankRow(Row row) {
+        if (row == null) return true;
+        for (int c = 0; c < row.getLastCellNum(); c++) {
+            if (!cellAsString(row.getCell(c)).isEmpty()) return false;
+        }
+        return true;
     }
 }

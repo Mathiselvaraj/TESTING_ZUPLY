@@ -4,19 +4,15 @@ import org.openqa.selenium.By;
 import org.openqa.selenium.JavascriptExecutor;
 import org.openqa.selenium.WebDriver;
 import org.openqa.selenium.WebElement;
-import org.openqa.selenium.support.ui.WebDriverWait;
 import org.openqa.selenium.support.ui.ExpectedConditions;
+import org.openqa.selenium.support.ui.WebDriverWait;
 
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.time.Duration;
-import java.util.ArrayList;
-import java.util.HashSet;
-import java.util.LinkedHashSet;
 import java.util.List;
-import java.util.Set;
 
 /**
  * One-shot utility: opens https://zuply.netlify.app/, walks the site (homepage
@@ -29,6 +25,11 @@ public class DOMDump {
 
     private static final String BASE = "https://zuply.netlify.app";
     private static final Path OUT_DIR = Paths.get("target", "dom-dumps");
+
+    /** Default wait for an element to appear during a navigation. */
+    private static final Duration NAV_WAIT = Duration.ofSeconds(15);
+    /** Max time we let the SPA's DOM keep churning before we give up and dump anyway. */
+    private static final Duration DOM_STABLE_WAIT = Duration.ofSeconds(8);
 
     private static final String[] PUBLIC_ROUTES = {
             "/", "/login", "/register", "/products", "/become-a-seller", "/customer-care", "/sellers"
@@ -43,7 +44,7 @@ public class DOMDump {
             "/admin/dashboard", "/admin/sellers", "/admin/products", "/admin/orders"
     };
 
-    public static void main(String[] args) throws IOException, InterruptedException {
+    public static void main(String[] args) throws IOException {
         Files.createDirectories(OUT_DIR);
 
         // Pass 1: anonymous — capture public pages
@@ -55,7 +56,6 @@ public class DOMDump {
         // Pass 3: register fresh seller + admin-approve, capture seller pages
         String sellerEmail = "ui.seller." + System.currentTimeMillis() + "@zuply.in";
         registerViaUi(sellerEmail, "Test@1234", "Ui Seller", "9876543210", "SELLER");
-        // Admin approval is done via API for speed
         approveAllPendingSellersViaApi();
         dumpRoutes("seller", sellerEmail, "Test@1234", SELLER_ROUTES);
 
@@ -69,15 +69,15 @@ public class DOMDump {
 
     /** Open a fresh browser, optionally log in, then dump each route. */
     private static void dumpRoutes(String role, String email, String pwd, String[] routes)
-            throws InterruptedException, IOException {
+            throws IOException {
         System.out.println("\n=== " + role + " ===");
         WebDriver d = DriverFactory.create(true);
         JavascriptExecutor js = (JavascriptExecutor) d;
         try {
             d.get(BASE + "/");
-            new WebDriverWait(d, Duration.ofSeconds(15))
+            new WebDriverWait(d, NAV_WAIT)
                     .until(ExpectedConditions.presenceOfElementLocated(By.cssSelector("app-root")));
-            Thread.sleep(1200);
+            waitForDomStable(d, DOM_STABLE_WAIT);
 
             if (email != null) {
                 if (!loginUi(d, email, pwd)) {
@@ -94,7 +94,8 @@ public class DOMDump {
                         "if (a) { a.click(); return 'click'; }" +
                         "history.pushState({}, '', path); window.dispatchEvent(new PopStateEvent('popstate')); return 'pushState';";
                     Object via = js.executeScript(script, route);
-                    Thread.sleep(1500);
+                    waitForUrlOrTimeout(d, route, NAV_WAIT);
+                    waitForDomStable(d, DOM_STABLE_WAIT);
 
                     String currentUrl = d.getCurrentUrl();
                     String html = (String) js.executeScript("return document.documentElement.outerHTML");
@@ -117,22 +118,25 @@ public class DOMDump {
         }
     }
 
-    private static boolean loginUi(WebDriver d, String email, String pwd) throws InterruptedException {
+    private static boolean loginUi(WebDriver d, String email, String pwd) {
         JavascriptExecutor js = (JavascriptExecutor) d;
         js.executeScript(
                 "const a = document.querySelector('a[href=\"/login\"], a[routerlink=\"/login\"]');" +
                 "if (a) a.click(); else { history.pushState({}, '', '/login'); window.dispatchEvent(new PopStateEvent('popstate')); }");
-        Thread.sleep(1500);
         try {
-            WebElement emailEl = d.findElement(By.cssSelector("input[type='email'].input"));
+            // Wait for the login form rather than guessing how long the SPA needs.
+            WebElement emailEl = new WebDriverWait(d, NAV_WAIT)
+                    .until(ExpectedConditions.visibilityOfElementLocated(
+                            By.cssSelector("input[type='email'].input")));
             WebElement pwdEl = d.findElement(By.cssSelector("input[type='password'].input"));
             emailEl.clear(); emailEl.sendKeys(email);
             pwdEl.clear(); pwdEl.sendKeys(pwd);
-            WebElement loginBtn = d.findElement(By.cssSelector("button.login-btn"));
+            WebElement loginBtn = new WebDriverWait(d, NAV_WAIT)
+                    .until(ExpectedConditions.elementToBeClickable(By.cssSelector("button.login-btn")));
             js.executeScript("arguments[0].scrollIntoView({block:'center'}); arguments[0].click();", loginBtn);
             new WebDriverWait(d, Duration.ofSeconds(10))
                     .until(ExpectedConditions.not(ExpectedConditions.urlContains("/login")));
-            Thread.sleep(800);
+            waitForDomStable(d, DOM_STABLE_WAIT);
             return true;
         } catch (Exception e) {
             System.out.println("  login UI error: " + e.getMessage());
@@ -146,11 +150,13 @@ public class DOMDump {
         JavascriptExecutor js = (JavascriptExecutor) d;
         try {
             d.get(BASE + "/");
-            new WebDriverWait(d, Duration.ofSeconds(15))
+            new WebDriverWait(d, NAV_WAIT)
                     .until(ExpectedConditions.presenceOfElementLocated(By.cssSelector("app-root")));
-            Thread.sleep(1200);
+            waitForDomStable(d, DOM_STABLE_WAIT);
+
             js.executeScript("history.pushState({}, '', '/register'); window.dispatchEvent(new PopStateEvent('popstate'));");
-            Thread.sleep(1500);
+            new WebDriverWait(d, NAV_WAIT)
+                    .until(ExpectedConditions.visibilityOfElementLocated(By.cssSelector("button.register-btn")));
 
             d.findElement(By.cssSelector("input[type='text'].input")).sendKeys(name);
             d.findElement(By.cssSelector("input[type='email'].input")).sendKeys(email);
@@ -166,11 +172,25 @@ public class DOMDump {
                     }
                 }
             }
-            Thread.sleep(300);
-            // Use JS click to bypass the chat FAB overlay that intercepts native clicks
-            WebElement submitBtn = d.findElement(By.cssSelector("button.register-btn"));
+            // Wait for the submit button to flip from disabled → clickable. Angular's
+            // reactive-form validity (and async validators) drive [disabled] on
+            // .register-btn; elementToBeClickable polls until both visible + enabled.
+            WebElement submitBtn = new WebDriverWait(d, NAV_WAIT)
+                    .until(ExpectedConditions.elementToBeClickable(By.cssSelector("button.register-btn")));
             js.executeScript("arguments[0].scrollIntoView({block:'center'}); arguments[0].click();", submitBtn);
-            Thread.sleep(2500);
+
+            // Wait for the SPA to navigate away from /register (success path) or for a
+            // visible error to render in place (failure path). Either is a deterministic
+            // signal the request has resolved.
+            try {
+                new WebDriverWait(d, Duration.ofSeconds(15)).until(drv -> {
+                    String url = drv.getCurrentUrl();
+                    if (url != null && !url.contains("/register")) return true;
+                    return !drv.findElements(By.cssSelector(
+                            "[role='alert'], .toast, .notification, [class*='error']")).isEmpty();
+                });
+            } catch (Exception ignored) {}
+
             String currentUrl = d.getCurrentUrl();
             System.out.println("  register " + role + " " + email + " → landed on " + currentUrl);
         } catch (Exception e) {
@@ -178,6 +198,38 @@ public class DOMDump {
         } finally {
             d.quit();
         }
+    }
+
+    /**
+     * Wait until the rendered HTML length stops changing for ~500 ms, or until
+     * {@code timeout} is reached. Returns silently — this is a best-effort
+     * "SPA has finished painting" signal that replaces fixed pauses. Polling
+     * cadence is delegated to {@link WebDriverWait}, which polls every 500 ms
+     * by default.
+     */
+    private static void waitForDomStable(WebDriver d, Duration timeout) {
+        long[] state = { -1L, System.currentTimeMillis() }; // [lastSize, lastChangeTimeMs]
+        try {
+            new WebDriverWait(d, timeout).until(drv -> {
+                long size = ((Number) ((JavascriptExecutor) drv).executeScript(
+                        "return document.documentElement.outerHTML.length")).longValue();
+                long now = System.currentTimeMillis();
+                if (size != state[0]) {
+                    state[0] = size;
+                    state[1] = now;
+                    return false;
+                }
+                return (now - state[1]) >= 500;
+            });
+        } catch (Exception ignored) { /* timed out; let caller dump whatever rendered */ }
+    }
+
+    /** Wait for current URL to contain {@code routeFragment}; swallow timeout. */
+    private static void waitForUrlOrTimeout(WebDriver d, String routeFragment, Duration timeout) {
+        if (routeFragment == null || routeFragment.isEmpty() || "/".equals(routeFragment)) return;
+        try {
+            new WebDriverWait(d, timeout).until(ExpectedConditions.urlContains(routeFragment));
+        } catch (Exception ignored) { /* let caller dump whatever rendered */ }
     }
 
     private static void approveAllPendingSellersViaApi() {

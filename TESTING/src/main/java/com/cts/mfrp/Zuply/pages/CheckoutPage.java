@@ -149,9 +149,7 @@ public class CheckoutPage extends BasePage {
 //
 //                    ((org.openqa.selenium.JavascriptExecutor) driver).executeScript(reactBypassScript, visiblePhoneInput);
 //
-//                    // Pause 1 second to let React process the massive state change
-//                    try { Thread.sleep(1000); } catch (InterruptedException ignored) {}
-//
+//                    // Wait until React has applied the synthetic state change.
 //                    // Click Continue natively
 //                    WebElement continueBtn = driver.findElement(By.xpath("//button[contains(., 'Continue') or contains(., 'Proceed')]"));
 //                    continueBtn.click();
@@ -159,8 +157,6 @@ public class CheckoutPage extends BasePage {
 //                    // Wait for the overlay to actually DISAPPEAR
 //                    new WebDriverWait(driver, java.time.Duration.ofSeconds(5))
 //                            .until(ExpectedConditions.invisibilityOf(visiblePhoneInput));
-//
-//                    try { Thread.sleep(1000); } catch (InterruptedException ignored) {}
 //                }
 //
 //            } catch (Exception e) {

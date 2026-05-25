@@ -130,8 +130,7 @@ public abstract class BasePage {
     /**
      * Wait up to {@code timeout} for {@code app-loading-spinner} (or generic spinner
      * variants) to disappear. Returns immediately if no spinner is present, fails
-     * silently on timeout. Use after filter clicks / API-triggered actions to
-     * replace fixed Thread.sleep waits.
+     * silently on timeout. Use after filter clicks / API-triggered actions.
      */
     public void waitForSpinnerGone(Duration timeout) {
         By spinners = By.cssSelector("app-loading-spinner, .spinner, [class*='spinner'], [class*='loading']");

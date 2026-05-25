@@ -22,8 +22,8 @@ import java.time.Duration;
  *   [NEGATIVE] — guard/restriction; expected to PASS when the application
  *                correctly denies or limits access.
  *
- * No Thread.sleep(), no inline selectors, no inline waits — all SPA timing
- * and locator concerns live on the page objects.
+ * No inline selectors, no inline waits — all SPA timing and locator concerns
+ * live on the page objects.
  */
 @Test(groups = {"regression", "ui", "seller"})
 public class SellerProductUiTests extends UiBaseTest {

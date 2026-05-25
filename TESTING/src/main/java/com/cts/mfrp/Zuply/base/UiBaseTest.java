@@ -165,7 +165,7 @@ public abstract class UiBaseTest {
     /**
      * Waits for a toast/alert to appear after a button-click action, then returns.
      * Falls through silently if no toast appears within 3 s (some actions complete
-     * without a visual notification). Replaces Thread.sleep after action clicks.
+     * without a visual notification).
      */
     protected void waitAfterAction() {
         try {

@@ -30,8 +30,8 @@ import java.time.Duration;
  * Several of these depend on Gemini availability + AI Vision API quota; tests will
  * skip cleanly when the AI pipeline is unreachable rather than failing the suite.
  *
- * No Thread.sleep -- all waits are explicit via SellerUploadPage.waitForAiContent
- * or BasePage.waitForUrlContains.
+ * All waits are explicit via SellerUploadPage.waitForAiContent or
+ * BasePage.waitForUrlContains.
  */
 @Test(groups = {"regression", "ui", "ai"})
 public class AIListingUiTests extends UiBaseTest {
