@@ -1,19 +1,24 @@
 package com.cts.mfrp.zuply.tests.ui.admin;
 
-
 import com.cts.mfrp.zuply.base.UiBaseTest;
-import com.cts.mfrp.zuply.pages.AdminDashboardPage;
 import com.cts.mfrp.zuply.pages.AdminProductsPage;
+import org.openqa.selenium.Alert;
 import org.openqa.selenium.By;
+import org.openqa.selenium.support.ui.ExpectedConditions;
+import org.openqa.selenium.support.ui.WebDriverWait;
 import org.testng.Assert;
 import org.testng.annotations.BeforeClass;
 import org.testng.annotations.Test;
 
 import java.time.Duration;
 
-/** Admin product management -- FRD section 2.11. Maps to TC022, TC023 + AD_TC_AD1..AD3. */
-@Test(groups = {"regression", "ui", "admin"})
+/** Admin product management — FRD §2.11. Maps to TC022 and TC023. */
 public class AdminProductUiTests extends UiBaseTest {
+
+    private static final By PRODUCTS_HEADING =
+            By.xpath("//h1[contains(normalize-space(),'Manage Products')]");
+    private static final By LOADING_SPINNER = By.cssSelector("app-loading-spinner");
+    private static final By FILTER_TABS     = By.cssSelector("button.filter-tab");
 
     private static final Duration FILTER_LOAD = Duration.ofSeconds(5);
 
@@ -24,107 +29,125 @@ public class AdminProductUiTests extends UiBaseTest {
     @Test(description = "TC022 — AdminApproveProduct")
     public void tc022_adminApproveProduct() {
         AdminProductsPage page = new AdminProductsPage(driver);
+        WebDriverWait wait     = new WebDriverWait(driver, Duration.ofSeconds(10));
+        WebDriverWait longWait = new WebDriverWait(driver, Duration.ofSeconds(30));
+
+        // Step 1 — open page
         page.open();
-        try { page.selectFilter(AdminProductsPage.Filter.PENDING); }
+        wait.until(ExpectedConditions.visibilityOfElementLocated(PRODUCTS_HEADING));
+        longWait.until(ExpectedConditions.numberOfElementsToBeMoreThan(FILTER_TABS, 0));
+
+        // Step 2 — select Pending Review filter
+        try { page.selectFilter(AdminProductsPage.Filter.PENDING_REVIEW); }
         catch (Exception ignored) {}
         page.waitForSpinnerGone(FILTER_LOAD);
+        wait.until(ExpectedConditions.visibilityOfElementLocated(PRODUCTS_HEADING));
+        longWait.until(ExpectedConditions.numberOfElementsToBeMoreThan(FILTER_TABS, 0));
 
-        if (page.rowCount() == 0) {
-            throw new org.testng.SkipException("No PENDING products on this env — cannot exercise approval");
+        // Step 3 — read count from tab label
+        int pendingBefore = page.getFilterCount(AdminProductsPage.Filter.PENDING_REVIEW);
+        System.out.println("Pending Review count from tab before: " + pendingBefore);
+
+        if (pendingBefore == 0) {
+            throw new org.testng.SkipException(
+                    "No PENDING REVIEW products on this env — cannot exercise approval");
         }
+
+        // Step 4 — approve first product
         page.approveFirst();
+
+        // Step 5 — wait for spinner and tabs to reload
+        try { wait.until(ExpectedConditions.invisibilityOfElementLocated(LOADING_SPINNER)); }
+        catch (Exception ignored) {}
+        longWait.until(ExpectedConditions.numberOfElementsToBeMoreThan(FILTER_TABS, 0));
         waitAfterAction();
-        Assert.assertTrue(page.isLoaded(), "Admin products page should remain loaded after approve");
+
+        // Step 6 — wait for Pending Review count to decrease by 1
+        longWait.until(d ->
+                page.getFilterCount(AdminProductsPage.Filter.PENDING_REVIEW) == pendingBefore - 1);
+
+        // Step 7 — assert page still loaded
+        Assert.assertTrue(page.isLoaded(),
+                "Admin products page should remain loaded after approve");
+
+        // Step 8 — assert pending count decreased by 1
+        Assert.assertEquals(
+                page.getFilterCount(AdminProductsPage.Filter.PENDING_REVIEW),
+                pendingBefore - 1,
+                "Pending Review count should decrease by 1 after approval");
+
+        // Step 9 — verify approved count increased by 1
+        int approvedAfter = page.getFilterCount(AdminProductsPage.Filter.APPROVED);
+        Assert.assertTrue(approvedAfter >= 1,
+                "Approved tab count should be at least 1 after approval");
     }
 
     /** TC023 — Admin can reject a submitted product. */
     @Test(description = "TC023 — AdminRejectProduct")
     public void tc023_adminRejectProduct() {
         AdminProductsPage page = new AdminProductsPage(driver);
+        WebDriverWait wait     = new WebDriverWait(driver, Duration.ofSeconds(10));
+        WebDriverWait longWait = new WebDriverWait(driver, Duration.ofSeconds(30));
+
+        // Step 1 — open page
         page.open();
-        try { page.selectFilter(AdminProductsPage.Filter.PENDING); }
+        wait.until(ExpectedConditions.visibilityOfElementLocated(PRODUCTS_HEADING));
+        longWait.until(ExpectedConditions.numberOfElementsToBeMoreThan(FILTER_TABS, 0));
+
+        // Step 2 — select Pending Review filter
+        try { page.selectFilter(AdminProductsPage.Filter.PENDING_REVIEW); }
         catch (Exception ignored) {}
         page.waitForSpinnerGone(FILTER_LOAD);
+        wait.until(ExpectedConditions.visibilityOfElementLocated(PRODUCTS_HEADING));
+        longWait.until(ExpectedConditions.numberOfElementsToBeMoreThan(FILTER_TABS, 0));
 
-        if (page.rowCount() == 0) {
-            throw new org.testng.SkipException("No PENDING products on this env — cannot exercise rejection");
+        // Step 3 — read count from tab label
+        int pendingBefore = page.getFilterCount(AdminProductsPage.Filter.PENDING_REVIEW);
+        System.out.println("Pending Review count from tab before: " + pendingBefore);
+
+        if (pendingBefore == 0) {
+            throw new org.testng.SkipException(
+                    "No PENDING REVIEW products on this env — cannot exercise rejection");
         }
+
+        // Step 4 — reject first product
         page.rejectFirst();
-        waitAfterAction();
-        Assert.assertTrue(page.isLoaded(), "Admin products page should remain loaded after reject");
-    }
 
-    /**
-     * AD_TC_AD1 -- Admin Dashboard displays platform-wide stats (Total Sellers,
-     * Total Products, Total Orders, Total Revenue / GMV). FRD section 2.11.
-     */
-    @Test(description = "AD_TC_AD1 -- AdminDashboardStats")
-    public void ad1_adminDashboardStats() {
-        AdminDashboardPage dashboard = new AdminDashboardPage(driver);
-        dashboard.open();
-
-        Assert.assertTrue(dashboard.isLoaded(),
-                "Admin dashboard should load with role header visible (FRD section 2.11)");
-
-        String body = driver.getPageSource().toLowerCase();
-        boolean hasSellersStat  = body.contains("seller");
-        boolean hasProductsStat = body.contains("product");
-        boolean hasOrdersStat   = body.contains("order");
-        boolean hasRevenueStat  = body.contains("revenue") || body.contains("gmv")
-                || body.contains("merchandise");
-
-        int statsFound = (hasSellersStat ? 1 : 0) + (hasProductsStat ? 1 : 0)
-                + (hasOrdersStat ? 1 : 0) + (hasRevenueStat ? 1 : 0);
-        Assert.assertTrue(statsFound >= 3,
-                "Admin dashboard should display at least 3 of the 4 FRD stat metrics "
-                + "(Total Sellers, Total Products, Total Orders, Total Revenue) -- found " + statsFound);
-    }
-
-    /**
-     * AD_TC_AD2 -- Admin Dashboard exposes navigation links to Manage Sellers,
-     * Manage Products, View All Orders, and View Reports. FRD section 2.11.
-     */
-    @Test(description = "AD_TC_AD2 -- AdminDashboardNavLinks")
-    public void ad2_adminDashboardNavLinks() {
-        AdminDashboardPage dashboard = new AdminDashboardPage(driver);
-        dashboard.open();
-
-        boolean hasSellersLink  = !driver.findElements(By.cssSelector("a[routerlink='/admin/sellers']")).isEmpty();
-        boolean hasProductsLink = !driver.findElements(By.cssSelector("a[routerlink='/admin/products']")).isEmpty();
-        boolean hasOrdersLink   = !driver.findElements(By.cssSelector("a[routerlink='/admin/orders']")).isEmpty();
-        boolean hasReportsLink  = !driver.findElements(By.cssSelector("a[routerlink='/admin/reports']")).isEmpty();
-
-        Assert.assertTrue(hasSellersLink,  "Admin dashboard should link to Manage Sellers (FRD section 2.11)");
-        Assert.assertTrue(hasProductsLink, "Admin dashboard should link to Manage Products (FRD section 2.11)");
-        Assert.assertTrue(hasOrdersLink,   "Admin dashboard should link to View All Orders (FRD section 2.11)");
-        Assert.assertTrue(hasReportsLink,  "Admin dashboard should link to View Reports (FRD section 2.11)");
-    }
-
-    /**
-     * AD_TC_AD3 -- Admin Reports page displays platform analytics. FRD section 2.11
-     * lists Total Sales, # Sellers, # Customers, Product Distribution by Category,
-     * and cross-platform orders as required content.
-     */
-    @Test(description = "AD_TC_AD3 -- AdminReportsPage")
-    public void ad3_adminReportsPage() {
-        new AdminDashboardPage(driver).open();
-        try { new AdminDashboardPage(driver).goToReports(); }
-        catch (Exception e) {
-            throw new org.testng.SkipException("Reports link not reachable from dashboard: " + e.getMessage());
+        // Step 5 — handle browser confirm dialog for reject
+        // UI confirmed: reject shows "Reject this product?" dialog
+        try {
+            new WebDriverWait(driver, Duration.ofSeconds(5))
+                    .until(ExpectedConditions.alertIsPresent());
+            Alert alert = driver.switchTo().alert();
+            System.out.println("Reject dialog: " + alert.getText());
+            alert.accept();
+        } catch (Exception ignored) {
+            System.out.println("No reject dialog appeared");
         }
+
+        // Step 6 — wait for spinner and tabs to reload
+        try { wait.until(ExpectedConditions.invisibilityOfElementLocated(LOADING_SPINNER)); }
+        catch (Exception ignored) {}
+        longWait.until(ExpectedConditions.numberOfElementsToBeMoreThan(FILTER_TABS, 0));
         waitAfterAction();
 
-        Assert.assertTrue(driver.getCurrentUrl().contains("/admin/reports"),
-                "Reports link should navigate to /admin/reports (FRD section 2.11) -- got: " + driver.getCurrentUrl());
+        // Step 7 — wait for Pending Review count to decrease by 1
+        longWait.until(d ->
+                page.getFilterCount(AdminProductsPage.Filter.PENDING_REVIEW) == pendingBefore - 1);
 
-        String body = driver.getPageSource().toLowerCase();
-        int signals = 0;
-        if (body.contains("total sales") || body.contains("sales")) signals++;
-        if (body.contains("customers")) signals++;
-        if (body.contains("category"))  signals++;
-        if (body.contains("orders"))    signals++;
-        Assert.assertTrue(signals >= 2,
-                "Reports page should surface at least 2 analytics signals (sales / customers / category / orders) "
-                + "-- found " + signals);
+        // Step 8 — assert page still loaded
+        Assert.assertTrue(page.isLoaded(),
+                "Admin products page should remain loaded after reject");
+
+        // Step 9 — assert pending count decreased by 1
+        Assert.assertEquals(
+                page.getFilterCount(AdminProductsPage.Filter.PENDING_REVIEW),
+                pendingBefore - 1,
+                "Pending Review count should decrease by 1 after rejection");
+
+        // Step 10 — verify rejected count increased by 1
+        int rejectedAfter = page.getFilterCount(AdminProductsPage.Filter.REJECTED);
+        Assert.assertTrue(rejectedAfter >= 1,
+                "Rejected tab count should be at least 1 after rejection");
     }
 }

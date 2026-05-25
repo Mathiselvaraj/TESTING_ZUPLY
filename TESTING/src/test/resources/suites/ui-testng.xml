@@ -57,6 +57,10 @@
         <classes><class name="com.cts.mfrp.zuply.tests.ui.admin.AdminSellerUiTests"/></classes>
     </test>
 
+    <test name="Admin Dashboard UI (TC050-TC069)">
+        <classes><class name="com.cts.mfrp.zuply.tests.ui.admin.AdminDashboardUiTests"/></classes>
+    </test>
+
     <test name="Image Upload UI (TC025-TC028)">
         <classes><class name="com.cts.mfrp.zuply.tests.ui.seller.ImageUploadUiTests"/></classes>
     </test>

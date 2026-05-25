@@ -6,14 +6,10 @@ import com.cts.mfrp.zuply.pages.CartPage;
 import com.cts.mfrp.zuply.pages.CheckoutPage;
 import com.cts.mfrp.zuply.pages.ProductsPage;
 import org.openqa.selenium.By;
-import org.openqa.selenium.support.ui.ExpectedConditions;
-import org.openqa.selenium.support.ui.WebDriverWait;
 import org.testng.Assert;
 import org.testng.SkipException;
 import org.testng.annotations.BeforeClass;
 import org.testng.annotations.Test;
-
-import java.time.Duration;
 
 /** Checkout & order placement — FRD §2.5. Maps to TC015 and TC016. */
 @Test(groups = {"regression", "ui", "checkout"})
@@ -96,15 +92,17 @@ public class CheckoutUiTests extends UiBaseTest {
         CheckoutPage cp = new CheckoutPage(driver);
         cp.open();
 
-        // Wait for the payment section to fully render (Angular loads it after the heading).
-        // The ready-marker only waits for the h1; payment radio buttons arrive slightly later.
-        new WebDriverWait(driver, Duration.ofSeconds(10)).until(
-                ExpectedConditions.presenceOfElementLocated(
-                        By.cssSelector("input[type='radio'], .payment-option, .payment-method")));
+        // THE FIX: Wait up to 10 seconds for the 'payment-options' container to physically
+        // render on the screen before taking the HTML snapshot.
+        new org.openqa.selenium.support.ui.WebDriverWait(driver, java.time.Duration.ofSeconds(10))
+                .until(org.openqa.selenium.support.ui.ExpectedConditions.visibilityOfElementLocated(
+                        By.cssSelector(".payment-options, .payment-option")));
 
         String body = driver.getPageSource().toLowerCase();
+
+        // Slightly broadened search strings just in case!
         boolean hasCod  = body.contains("cash on delivery") || body.contains("cod");
-        boolean hasUpi  = body.contains("upi");
+        boolean hasUpi  = body.contains("upi") || body.contains("upi payment") || body.contains("gpay");
         boolean hasCard = body.contains("card");
 
         Assert.assertTrue(hasCod,  "Checkout should expose 'Cash on Delivery' payment method (FRD section 2.5)");

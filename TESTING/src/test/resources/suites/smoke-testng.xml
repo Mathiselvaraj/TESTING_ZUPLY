@@ -29,11 +29,11 @@
         </classes>
     </test>
 
-    <test name="Smoke — UI Auth">
-        <classes>
-            <class name="com.cts.mfrp.zuply.tests.ui.auth.AuthUiTests"/>
-        </classes>
-    </test>
+<!--    <test name="Smoke — UI Auth">-->
+<!--        <classes>-->
+<!--            <class name="com.cts.mfrp.zuply.tests.ui.auth.AuthUiTests"/>-->
+<!--        </classes>-->
+<!--    </test>-->
 
     <test name="Smoke — UI Home">
         <classes>

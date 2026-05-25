@@ -5,10 +5,12 @@ import com.cts.mfrp.zuply.base.UiBaseTest;
 import com.cts.mfrp.zuply.pages.HomePage;
 import org.openqa.selenium.By;
 import org.openqa.selenium.WebElement;
+import org.openqa.selenium.support.ui.ExpectedConditions;
+import org.openqa.selenium.support.ui.WebDriverWait;
 import org.testng.Assert;
 import org.testng.annotations.Test;
 
-import java.util.List;
+import java.time.Duration;
 
 /** Home page UI scenarios -- FRD section 2.2. Maps to TC006 + AD_TC_HP1..AD_TC_HP3. */
 @Test(groups = {"smoke", "regression", "ui", "home"})
@@ -16,8 +18,8 @@ public class HomePageUiTests extends UiBaseTest {
 
     /** Eight categories enumerated in FRD section 2.2 -- Category Section. */
     private static final String[] FRD_CATEGORIES = {
-            "Food and Beverage", "Grocery", "Fashion and Footwear", "Home and Kitchen",
-            "Electronics", "Beauty and Personal Care", "Health and Wellness", "Agriculture"
+            "Food & Beverage", "Grocery", "Fashion & Footwear", "Home & Kitchen",
+            "Electronics", "Beauty & Personal Care", "Health & Wellness", "Agriculture"
     };
 
     /** TC006 -- Validate required elements are displayed on the home page. */
@@ -37,89 +39,78 @@ public class HomePageUiTests extends UiBaseTest {
     }
 
     /**
-     * AD_TC_HP1 -- All 8 FRD-mandated categories appear somewhere on the home page.
-     * Categories may be rendered as tiles, chips, or carousel items.
-     * If the home page does not show category tiles, the test verifies that the
-     * product-browsing section (search + sort + product listing) is reachable,
-     * which fulfils the FRD section 2.2 category/discovery requirement.
+     * AD_TC_HP1 -- All 8 FRD-mandated categories appear somewhere on the page.
      */
     @Test(description = "AD_TC_HP1 -- HomePageCategorySection")
     public void hp1_homePageCategorySection() {
-        new HomePage(driver).open();
+        // 1. Start at the Home Page (Guest mode)
+        HomePage home = new HomePage(driver);
+        home.open();
 
-        // Navigate to the products page via the nav link (Angular SPA routing)
-        List<WebElement> productsNavLink = driver.findElements(By.linkText("Products"));
-        if (!productsNavLink.isEmpty()) {
-            productsNavLink.get(0).click();
-            waitAfterAction();
+        // 2. Simulate a real user clicking "Products" in the navigation bar
+        WebElement productsNavBtn = new WebDriverWait(driver, java.time.Duration.ofSeconds(5))
+                .until(ExpectedConditions.elementToBeClickable(By.xpath("//a[contains(translate(., 'ABCDEFGHIJKLMNOPQRSTUVWXYZ', 'abcdefghijklmnopqrstuvwxyz'), 'products')]")));
+        productsNavBtn.click();
+
+        // 3. Wait for the Products page to load and chips to appear
+        WebDriverWait wait = new WebDriverWait(driver, java.time.Duration.ofSeconds(10));
+        try {
+            wait.until(ExpectedConditions.visibilityOfElementLocated(By.cssSelector("button.chip")));
+        } catch (Exception e) {
+            Assert.fail("Category chips did not load within 10 seconds after clicking Products nav link.");
         }
 
-        String body = driver.getPageSource().toLowerCase();
+        // Grab ALL visible text on the page at once.
+        String bodyText = driver.findElement(By.tagName("body")).getText().toLowerCase();
 
-        // Check for the 8 FRD-mandated category labels
         int found = 0;
         StringBuilder missing = new StringBuilder();
+
         for (String cat : FRD_CATEGORIES) {
-            if (body.contains(cat.toLowerCase())) {
+            if (bodyText.contains(cat.toLowerCase())) {
                 found++;
             } else {
                 missing.append(cat).append("; ");
             }
         }
 
-        // If exact category tiles are not present, accept that the app exposes a
-        // product-browsing section (search + sort controls) as the discovery mechanism.
-        boolean hasBrowsingSection = body.contains("all products")
-                || body.contains("search")
-                || body.contains("sort");
-
-        Assert.assertTrue(found >= FRD_CATEGORIES.length - 1 || hasBrowsingSection,
-                "Product category/browsing section should be accessible from home (FRD section 2.2). "
-                + "Missing categories: " + missing);
+        Assert.assertTrue(found >= FRD_CATEGORIES.length - 1,
+                "Products page should display all 8 FRD categories (section 2.2). Missing: " + missing);
     }
 
     /**
-     * AD_TC_HP2 -- Top section components: search bar, filter/sort controls, login/sign-in.
-     * FRD section 2.2. Search and filter controls are on the /products page reachable
-     * from the home-page nav bar.
+     * AD_TC_HP2 -- Top section components: search bar, location selector.
      */
     @Test(description = "AD_TC_HP2 -- HomePageTopBarComponents")
     public void hp2_homePageTopBarComponents() {
-        new HomePage(driver).open();
+        // FIX: Navigate to the ProductsPage where the search bar actually resides
+        com.cts.mfrp.zuply.pages.ProductsPage productsPage = new com.cts.mfrp.zuply.pages.ProductsPage(driver);
+        productsPage.open();
 
-        // Navigate to products page via nav link (Angular SPA) where search bar resides
-        List<WebElement> productsNavLink = driver.findElements(By.linkText("Products"));
-        if (!productsNavLink.isEmpty()) {
-            productsNavLink.get(0).click();
-            waitAfterAction();
-        }
+        WebDriverWait wait = new WebDriverWait(driver, Duration.ofSeconds(10));
 
-        boolean hasSearch = !driver.findElements(By.cssSelector(
-                "input.search-input, input[type='search'], input[placeholder*='earch' i], "
-                + "input[placeholder*='Search' i]")).isEmpty();
+        boolean hasSearch = false;
+        try {
+            wait.until(ExpectedConditions.presenceOfElementLocated(By.cssSelector("input.search-input, input[placeholder*='earch' i]")));
+            hasSearch = true;
+        } catch (Exception ignored) {}
 
-        // Location selector OR sort/filter controls satisfy FRD section 2.2 filtering requirement
-        boolean hasFilter = !driver.findElements(By.cssSelector(
-                ".location-selector, [class*='location'], select[name*='location' i], "
-                + "input[placeholder*='location' i], input[placeholder*='pincode' i], "
-                + "select.sort-select, .sort-wrap, [class*='sort'], [class*='filter']")).isEmpty();
+        boolean hasLocation = !driver.findElements(By.cssSelector(
+                ".location-selector, [class*='location'], select[name*='location' i], input[placeholder*='location' i], input[placeholder*='pincode' i]")).isEmpty();
 
-        Assert.assertTrue(hasSearch,  "Product search bar should be accessible from the home page (FRD section 2.2)");
-        Assert.assertTrue(hasFilter,  "Filter/sort or location selector should be accessible from the home page (FRD section 2.2)");
+        Assert.assertTrue(hasSearch,   "Page should expose a product search bar (FRD section 2.2)");
+        Assert.assertTrue(hasLocation, "Page should expose a location selector (FRD section 2.2)");
     }
 
     /**
-     * AD_TC_HP3 -- Mobile hamburger menu provides quick-access tiles for
-     * Become a Seller, Customer Care, and Advertise on Zuply. FRD section 2.12.
+     * AD_TC_HP3 -- Mobile hamburger menu provides quick-access tiles.
      */
     @Test(description = "AD_TC_HP3 -- HamburgerQuickAccessTiles")
     public void hp3_hamburgerQuickAccessTiles() {
         HomePage home = new HomePage(driver);
         home.open();
         try { home.openHamburger(); }
-        catch (Exception ignored) {
-            // Some viewports render the menu inline; the tiles should still be in the DOM.
-        }
+        catch (Exception ignored) { }
         waitAfterAction();
 
         String body = driver.getPageSource().toLowerCase();
