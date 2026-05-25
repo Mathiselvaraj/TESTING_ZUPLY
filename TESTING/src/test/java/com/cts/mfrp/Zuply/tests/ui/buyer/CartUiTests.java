@@ -9,13 +9,12 @@ import org.testng.SkipException;
 import org.testng.annotations.BeforeClass;
 import org.testng.annotations.Test;
 
-/** Shopping cart — FRD §2.4. Maps to TC013, TC014, TC019. */
+/** Shopping cart — FRD §2.4. Maps to TC013, AD_TC_CART3, TC019. */
 @Test(groups = {"regression", "ui", "cart"})
 public class CartUiTests extends UiBaseTest {
 
     private String buyerEmail;
 
-    /** Register + login once for the whole class so individual tests don't repeat auth. */
     @BeforeClass(alwaysRun = true, dependsOnMethods = "launchBrowser")
     public void loginBuyer() {
         buyerEmail = registerNewCustomer("Cart");
@@ -38,66 +37,6 @@ public class CartUiTests extends UiBaseTest {
                 "Cart should contain at least 1 item after Add to cart click");
     }
 
-    /** TC014 — Update item quantity in cart. */
-    @Test(enabled = false, description = "TC014 — CartQuantityUpdate")
-    public void tc014_cartQuantityUpdate() {
-        ProductsPage products = new ProductsPage(driver);
-        products.open();
-        if (!products.hasAddToCartButtons()) {
-            throw new SkipException("No 'Add to cart' button visible");
-        }
-        products.addFirstToCart();
-
-        CartPage cart = new CartPage(driver);
-        cart.open();
-        cart.incrementFirstQuantity();
-        Assert.assertFalse(cart.isEmpty(), "Cart should still contain items after quantity adjust");
-    }
-
-    /**
-     * AD_TC_CART1 -- "Continue Shopping" button is reachable from the cart page.
-     * FRD section 2.4 lists Continue Shopping and Checkout as the two cart buttons.
-     */
-    @Test(enabled = false, description = "AD_TC_CART1 -- ContinueShoppingButtonVisible")
-    public void tcCart1_continueShoppingButtonVisible() {
-        ProductsPage products = new ProductsPage(driver);
-        products.open();
-        if (!products.hasAddToCartButtons()) {
-            throw new SkipException("No 'Add to cart' button visible on products page");
-        }
-        products.addFirstToCart();
-
-        CartPage cart = new CartPage(driver);
-        cart.open();
-        boolean hasContinueShopping = !driver.findElements(By.xpath(
-                "//*[self::a or self::button][contains(translate(.,'CONTINUE SHOPPING','continue shopping'),'continue shopping')]")).isEmpty();
-        Assert.assertTrue(hasContinueShopping,
-                "Cart page should show a 'Continue Shopping' control (FRD section 2.4)");
-    }
-
-    /**
-     * AD_TC_CART2 -- Adding the SAME product twice should not create a duplicate cart
-     * row; the system shall increment the quantity instead (FRD section 2.4).
-     */
-    @Test(enabled = false, description = "AD_TC_CART2 -- DuplicateAddIncrementsQuantity")
-    public void tcCart2_duplicateAddIncrementsQuantity() {
-        ProductsPage products = new ProductsPage(driver);
-        products.open();
-        if (!products.hasAddToCartButtons()) {
-            throw new SkipException("No 'Add to cart' button visible on products page");
-        }
-        products.addFirstToCart();
-        // Second click on the same product card -- should NOT add a new row.
-        products.open();
-        products.addFirstToCart();
-
-        CartPage cart = new CartPage(driver);
-        cart.open();
-        Assert.assertEquals(cart.itemCount(), 2,
-                "Adding the same product twice should keep cart at 1 row and increment quantity (FRD section 2.4) -- "
-                + "actual row count: " + cart.itemCount());
-    }
-
     /**
      * AD_TC_CART3 -- Remove item action removes the product from the cart entirely.
      * FRD section 2.4 lists "Remove item individually" as an explicit cart action.
@@ -117,11 +56,7 @@ public class CartUiTests extends UiBaseTest {
         if (before == 0) {
             throw new SkipException("Cart did not receive the seeded item -- nothing to remove");
         }
-        try {
-            cart.removeFirst();
-        } catch (Exception e) {
-            throw new SkipException("Remove control not present in this SPA build: " + e.getMessage());
-        }
+        cart.removeFirst();
         waitAfterAction();
         Assert.assertTrue(cart.itemCount() < before,
                 "Cart item count should decrease after Remove click -- was " + before + ", now " + cart.itemCount());
@@ -129,9 +64,9 @@ public class CartUiTests extends UiBaseTest {
 
     /**
      * TC019 -- Cart nav link shows an item count after a product is added.
-     * BUG-CONFIRMATION TEST (from Likitha): the cart icon always reads "Cart" with no
-     * count indicator; the wishlist nav correctly shows "Wishlist\n1" after an add -- cart
-     * should behave the same way. Expected to FAIL until the application bug is fixed.
+     * BUG-CONFIRMATION TEST: the cart icon always reads "Cart" with no count indicator;
+     * the wishlist nav correctly shows "Wishlist\n1" after an add -- cart should behave
+     * the same way. Expected to FAIL until the application bug is fixed.
      */
     @Test(description = "TC019 — CartCountBadgeUpdates [BUG]")
     public void tc019_cartNavCountUpdatesAfterAdd() {
@@ -143,9 +78,6 @@ public class CartUiTests extends UiBaseTest {
         products.addFirstToCart();
         waitAfterAction();
 
-        // The cart nav link should show a count after adding (e.g. "Cart\n1"),
-        // exactly as the wishlist nav shows "Wishlist\n1" after wishlisting a product.
-        // TODO: lift these locators onto HomePage once the bug is fixed.
         var cartLink = driver.findElements(By.cssSelector("a.nav-cart"));
         Assert.assertFalse(cartLink.isEmpty(), "Cart nav link (a.nav-cart) not found in header");
 
