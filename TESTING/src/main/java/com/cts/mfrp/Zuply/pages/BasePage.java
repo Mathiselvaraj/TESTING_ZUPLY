@@ -22,14 +22,24 @@ public abstract class BasePage {
 
     public static final String BASE_URL = "https://zuply.netlify.app";
 
+    /**
+     * Global default wait window for page objects. Bumped from 10s to 25s in
+     * response to TimeoutException churn on Angular reactive-form submit buttons
+     * (the [disabled] binding flips on async validators that can be slow on
+     * Render cold-starts). Specific operations can still override via the
+     * Duration-taking helpers below.
+     */
+    public static final Duration DEFAULT_WAIT = Duration.ofSeconds(25);
+    public static final Duration LONG_WAIT    = Duration.ofSeconds(40);
+
     protected final WebDriver driver;
     protected final WebDriverWait wait;
     protected final WebDriverWait longWait;
 
     protected BasePage(WebDriver driver) {
         this.driver = driver;
-        this.wait = new WebDriverWait(driver, Duration.ofSeconds(10));
-        this.longWait = new WebDriverWait(driver, Duration.ofSeconds(20));
+        this.wait = new WebDriverWait(driver, DEFAULT_WAIT);
+        this.longWait = new WebDriverWait(driver, LONG_WAIT);
     }
 
     /** Subclasses declare the route they live at (e.g. "/login", "/admin/dashboard"). */
@@ -72,21 +82,85 @@ public abstract class BasePage {
         return wait.until(ExpectedConditions.elementToBeClickable(by));
     }
 
+    /**
+     * Type into a field with stale-element resilience AND value verification.
+     *
+     * Three failure modes this method defends against, in increasing severity:
+     *   1. The Zuply SPA re-renders reactive-form controls when validators fire,
+     *      which can invalidate a WebElement reference between the locate and
+     *      the sendKeys call → StaleElementReferenceException. We re-find on
+     *      every attempt.
+     *   2. Selenium's sendKeys can race with the same re-render and drop
+     *      characters, leaving the input partial or empty. Without a check the
+     *      next thing the test does is wait 25s on a [disabled] submit button
+     *      that will never enable. We compare {@code el.getDomProperty("value")}
+     *      to {@code text} and, if it doesn't match, JS-assign the full string
+     *      directly.
+     *   3. The input is hidden behind a custom Angular component that intercepts
+     *      keystrokes and the underlying <input> never receives them. Same JS
+     *      fallback covers this case.
+     *
+     * After every successful write we dispatch input/change/blur so Angular's
+     * [(ngModel)] picks the value up and the form validators run — without
+     * blur, the submit button's [disabled]="form.invalid" binding stays true
+     * even with a perfectly valid value.
+     */
     protected void type(By by, String text) {
-        WebElement el = waitVisible(by);
-        el.sendKeys(org.openqa.selenium.Keys.chord(org.openqa.selenium.Keys.CONTROL, "a"), org.openqa.selenium.Keys.BACK_SPACE);
-        if (text != null && !text.isEmpty()) {
-            el.sendKeys(text);
+        org.openqa.selenium.StaleElementReferenceException lastStale = null;
+        String expected = text == null ? "" : text;
+        for (int attempt = 1; attempt <= 3; attempt++) {
+            try {
+                WebElement el = waitVisible(by);
+                el.sendKeys(org.openqa.selenium.Keys.chord(org.openqa.selenium.Keys.CONTROL, "a"),
+                        org.openqa.selenium.Keys.BACK_SPACE);
+                if (!expected.isEmpty()) {
+                    el.sendKeys(expected);
+                }
+
+                // Verify the input actually carries the value we sent. If sendKeys
+                // raced with a re-render the field can end up empty/partial — fall
+                // back to JS-setting the value so downstream form validation can run.
+                String actual = el.getDomProperty("value");
+                if (!expected.equals(actual == null ? "" : actual)) {
+                    ((JavascriptExecutor) driver).executeScript(
+                            "arguments[0].value = arguments[1];", el, expected);
+                }
+
+                // Angular reactive forms only run validators + mark the control as
+                // "touched" on blur. Without this, the [disabled] binding on submit
+                // buttons (form.invalid) never flips to false, so waitClickable() on
+                // the submit button times out even though the field values are valid.
+                ((JavascriptExecutor) driver).executeScript(
+                        "arguments[0].dispatchEvent(new Event('input', {bubbles:true}));" +
+                        "arguments[0].dispatchEvent(new Event('change', {bubbles:true}));" +
+                        "arguments[0].dispatchEvent(new Event('blur', {bubbles:true}));",
+                        el);
+                return;
+            } catch (org.openqa.selenium.StaleElementReferenceException e) {
+                lastStale = e;
+                // fall through to next attempt; waitVisible() will re-find the element
+            }
         }
-        // Angular reactive forms only run validators + mark the control as
-        // "touched" on blur. Without this, the [disabled] binding on submit
-        // buttons (form.invalid) never flips to false, so waitClickable() on
-        // the submit button times out even though the field values are valid.
-        ((JavascriptExecutor) driver).executeScript(
-                "arguments[0].dispatchEvent(new Event('input', {bubbles:true}));" +
-                "arguments[0].dispatchEvent(new Event('change', {bubbles:true}));" +
-                "arguments[0].dispatchEvent(new Event('blur', {bubbles:true}));",
-                el);
+        throw lastStale;
+    }
+
+    /**
+     * Wait until the DOM property {@code value} of the input located by {@code by}
+     * equals {@code expected}. Bounded by the page's default wait. Useful as a
+     * pre-flight before clicking a submit button gated on [disabled]=form.invalid
+     * — confirms Angular has registered the typed value, so the test fails fast
+     * with "field still blank" rather than after a 25s waitClickable timeout.
+     */
+    protected void waitForInputValue(By by, String expected) {
+        String target = expected == null ? "" : expected;
+        wait.until(d -> {
+            try {
+                String v = d.findElement(by).getDomProperty("value");
+                return target.equals(v == null ? "" : v);
+            } catch (org.openqa.selenium.StaleElementReferenceException e) {
+                return false;
+            }
+        });
     }
 
     /**
@@ -130,8 +204,7 @@ public abstract class BasePage {
     /**
      * Wait up to {@code timeout} for {@code app-loading-spinner} (or generic spinner
      * variants) to disappear. Returns immediately if no spinner is present, fails
-     * silently on timeout. Use after filter clicks / API-triggered actions to
-     * replace fixed Thread.sleep waits.
+     * silently on timeout. Use after filter clicks / API-triggered actions.
      */
     public void waitForSpinnerGone(Duration timeout) {
         By spinners = By.cssSelector("app-loading-spinner, .spinner, [class*='spinner'], [class*='loading']");

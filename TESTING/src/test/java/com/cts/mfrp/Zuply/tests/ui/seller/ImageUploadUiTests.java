@@ -3,6 +3,7 @@ package com.cts.mfrp.zuply.tests.ui.seller;
 
 import com.cts.mfrp.zuply.base.UiBaseTest;
 import com.cts.mfrp.zuply.pages.SellerUploadPage;
+import com.cts.mfrp.zuply.utils.ExcelUtils;
 import org.testng.Assert;
 import org.testng.annotations.BeforeClass;
 import org.testng.annotations.Test;
@@ -16,26 +17,36 @@ import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.time.Duration;
+import java.util.Map;
 import java.util.Random;
 
 /** Image upload — FRD §2.10 (Product Upload) + §3.4 (validation rules). Maps to TC025-TC028. */
 @Test(groups = {"regression", "ui", "upload"})
 public class ImageUploadUiTests extends UiBaseTest {
 
+    private static final String DATA_FILE = "src/test/resources/testdata/UI_ProductData.xlsx";
+    private static final String SHEET     = "ImageUpload";
+
     private static final Duration UPLOAD_SETTLE = Duration.ofSeconds(10);
 
     private String sellerEmail;
 
+    private Map<String, String> data(String testCaseId) throws IOException {
+        return ExcelUtils.getRowByTestCaseId(DATA_FILE, SHEET, testCaseId);
+    }
+
     @BeforeClass(alwaysRun = true, dependsOnMethods = "launchBrowser")
     public void loginSeller() {
         sellerEmail = registerNewSeller("UploadSeller");
-        loginViaUi(sellerEmail, "Test@1234");
+        loginViaUi(sellerEmail, defaultPassword());
     }
 
     /** TC025 — Seller can upload a valid JPEG within the size limit. */
     @Test(description = "TC025 — ValidImageUpload")
     public void tc025_validImageUpload() throws IOException {
-        File img = generateImage("jpg", 200, 200);
+        Map<String, String> row = data("TC025");
+        File img = generateImage(row.get("Format"),
+                Integer.parseInt(row.get("Width")), Integer.parseInt(row.get("Height")));
         SellerUploadPage upload = new SellerUploadPage(driver);
         upload.open();
         upload.uploadImage(img);
@@ -47,7 +58,8 @@ public class ImageUploadUiTests extends UiBaseTest {
     /** TC026 — Reject non-JPEG/PNG file types (e.g. PDF). */
     @Test(description = "TC026 — InvalidFileTypeUpload")
     public void tc026_invalidFileTypeUpload() throws IOException {
-        Path pdfPath = Files.createTempFile("zuply_bogus_", ".pdf");
+        Map<String, String> row = data("TC026");
+        Path pdfPath = Files.createTempFile("zuply_bogus_", "." + row.get("Format"));
         Files.writeString(pdfPath, "%PDF-1.4\n%fake pdf for negative test\n");
         File pdf = pdfPath.toFile();
         pdf.deleteOnExit();
@@ -68,8 +80,11 @@ public class ImageUploadUiTests extends UiBaseTest {
     /** TC027 — Reject upload exceeding 10 MB. */
     @Test(description = "TC027 — FileSizeExceeded")
     public void tc027_fileSizeExceeded() throws IOException {
-        Path big = Files.createTempFile("zuply_big_", ".jpg");
-        byte[] payload = new byte[12 * 1024 * 1024];
+        Map<String, String> row = data("TC027");
+        int sizeMb = Integer.parseInt(row.get("SizeMB"));
+
+        Path big = Files.createTempFile("zuply_big_", "." + row.get("Format"));
+        byte[] payload = new byte[sizeMb * 1024 * 1024];
         new Random().nextBytes(payload);
         Files.write(big, payload);
         big.toFile().deleteOnExit();
@@ -89,7 +104,9 @@ public class ImageUploadUiTests extends UiBaseTest {
     /** TC028 — Seller can upload a valid PNG file. */
     @Test(description = "TC028 — ValidPNGUpload")
     public void tc028_validPngUpload() throws IOException {
-        File img = generateImage("png", 200, 200);
+        Map<String, String> row = data("TC028");
+        File img = generateImage(row.get("Format"),
+                Integer.parseInt(row.get("Width")), Integer.parseInt(row.get("Height")));
         SellerUploadPage upload = new SellerUploadPage(driver);
         upload.open();
         upload.uploadImage(img);

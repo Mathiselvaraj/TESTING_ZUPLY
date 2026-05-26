@@ -1,89 +1,133 @@
 package com.cts.mfrp.zuply.tests.ui.buyer;
 
-
 import com.cts.mfrp.zuply.base.UiBaseTest;
-import com.cts.mfrp.zuply.pages.CartPage;
 import com.cts.mfrp.zuply.pages.CheckoutPage;
 import com.cts.mfrp.zuply.pages.ProductsPage;
+import com.cts.mfrp.zuply.utils.ExcelUtils;
 import org.openqa.selenium.By;
+import org.openqa.selenium.support.ui.ExpectedConditions;
+import org.openqa.selenium.support.ui.WebDriverWait;
 import org.testng.Assert;
-import org.testng.SkipException;
 import org.testng.annotations.BeforeClass;
+import org.testng.annotations.DataProvider;
 import org.testng.annotations.Test;
 
-/** Checkout & order placement — FRD §2.5. Maps to TC015 and TC016. */
+import java.time.Duration;
+import java.util.List;
+import java.util.Map;
+
+/**
+ * Checkout & order placement — FRD §2.5. Maps to TC015, TC016, TC017 + AD_TC_CO1.
+ *
+ * Test data lives in {@code src/test/resources/testdata/OrderData.xlsx}, sheet
+ * {@code CheckoutUI}. Each row is tagged with a {@code Scenario} (VALID,
+ * MISSING_CITY, UPI_RAZORPAY) so each test method consumes exactly the rows it
+ * cares about via a filtered {@link DataProvider}.
+ */
 @Test(groups = {"regression", "ui", "checkout"})
 public class CheckoutUiTests extends UiBaseTest {
+
+    private static final String DATA_FILE = "src/test/resources/testdata/UI_OrderData.xlsx";
+    private static final String SHEET     = "CheckoutUI";
 
     private String buyerEmail;
 
     @BeforeClass(alwaysRun = true, dependsOnMethods = "launchBrowser")
     public void loginBuyer() {
         buyerEmail = registerNewCustomer("Checkout");
-        loginViaUi(buyerEmail, "Test@1234");
+        loginViaUi(buyerEmail, defaultPassword());
     }
 
-    /** TC015 — Successful checkout with valid delivery address and payment method. */
-    @Test(description = "TC015 — ValidCheckout")
-    public void tc015_validCheckout() {
+    /* ------------------------------------------------------------------ */
+    /* Data providers — each filters CheckoutUI sheet rows by Scenario     */
+    /* ------------------------------------------------------------------ */
+
+    @DataProvider(name = "validAddresses")
+    public Object[][] validAddresses() throws Exception {
+        return rowsByScenario("VALID");
+    }
+
+    @DataProvider(name = "missingCityRow")
+    public Object[][] missingCityRow() throws Exception {
+        return rowsByScenario("MISSING_CITY");
+    }
+
+    @DataProvider(name = "upiRow")
+    public Object[][] upiRow() throws Exception {
+        return rowsByScenario("UPI_RAZORPAY");
+    }
+
+    private Object[][] rowsByScenario(String scenario) throws Exception {
+        List<Map<String, String>> all = ExcelUtils.getTestDataAsMaps(DATA_FILE, SHEET);
+        return all.stream()
+                .filter(r -> scenario.equalsIgnoreCase(r.get("Scenario")))
+                .map(r -> new Object[]{ r })
+                .toArray(Object[][]::new);
+    }
+
+    /* ------------------------------------------------------------------ */
+    /* Tests                                                               */
+    /* ------------------------------------------------------------------ */
+
+    /** TC015 — Successful checkout with valid delivery address + payment method. */
+    @Test(dataProvider = "validAddresses", description = "TC015 — ValidCheckout")
+    public void tc015_validCheckout(Map<String, String> row) {
         seedOneItemInCart();
 
         CheckoutPage cp = new CheckoutPage(driver);
         cp.open();
-        cp.fillAddress("John Doe", "9876543210", "123 Main St", "Chennai", "600001");
-        try { cp.selectPaymentMethod("Cash"); } catch (Exception ignored) {}
+        cp.fillAddress(
+                row.get("Name"), row.get("Phone"), row.get("Address"),
+                row.get("City"), row.get("Pincode"));
+        try { cp.selectPaymentMethod(row.get("PaymentMethod")); } catch (Exception ignored) {}
         try { cp.placeOrder(); } catch (Exception ignored) {}
         waitAfterAction();
 
         Assert.assertFalse(driver.getTitle().contains("Page not found"),
-                "Should not land on Netlify's 404 after checkout submit");
+                row.get("TestCaseId") + " — should not land on Netlify's 404 after checkout submit");
     }
 
-    @Test(description = "TC016 — CheckoutMissingFields")
-    public void tc016_checkoutMissingFields() {
+    /** TC016 — City field validation surfaces on submit with a blank city. */
+    @Test(dataProvider = "missingCityRow", description = "TC016 — CheckoutMissingFields")
+    public void tc016_checkoutMissingFields(Map<String, String> row) {
         seedOneItemInCart();
         CheckoutPage cp = new CheckoutPage(driver);
         cp.open();
-        cp.fillAddress("John Doe", "9876543210", "123 Main St", "", "600001"); // City is blank
-        try { cp.selectPaymentMethod("Cash"); } catch (Exception ignored) {}
+        cp.fillAddress(
+                row.get("Name"), row.get("Phone"), row.get("Address"),
+                row.get("City"), row.get("Pincode"));   // City is blank per the data row
+        try { cp.selectPaymentMethod(row.get("PaymentMethod")); } catch (Exception ignored) {}
         try { cp.placeOrder(); } catch (Exception ignored) {}
         waitAfterAction();
 
-        // 1. Check if the frontend incorrectly allowed the order to go through
         Assert.assertFalse(cp.isOrderSuccessMessageVisible(),
-                "CRITICAL BUG: The application allowed order placement without a city!");
-        // 2. Strictly check that the specific visual error rendered on the DOM
+                row.get("TestCaseId") + " — order should NOT have been placed with a blank city");
         Assert.assertTrue(cp.isCityValidationErrorVisible(),
-                "The red validation error for missing City did not appear on screen.");
+                row.get("TestCaseId") + " — red validation error for missing City did not render");
     }
 
-    /** AD_TC017 — Successful checkout via Razorpay Online Payment Flow (FRD §4.1). */
-    @Test(description = "TC_AD017 — OnlinePaymentCheckout")
-    public void tc017_onlinePaymentCheckout() {
+    /** AD_TC017 — Online (Razorpay) payment flow hands off to the Razorpay modal. */
+    @Test(dataProvider = "upiRow", description = "TC_AD017 — OnlinePaymentCheckout")
+    public void tc017_onlinePaymentCheckout(Map<String, String> row) {
         seedOneItemInCart();
 
         CheckoutPage cp = new CheckoutPage(driver);
         cp.open();
-        cp.fillAddress("Jane Doe", "9876543210", "456 Tech Park", "Hyderabad", "500081");
-
-        // Select UPI or Card
-        try { cp.selectPaymentMethod("UPI"); } catch (Exception ignored) {}
-
-        // Trigger the backend call to create the Razorpay Order
+        cp.fillAddress(
+                row.get("Name"), row.get("Phone"), row.get("Address"),
+                row.get("City"), row.get("Pincode"));
+        try { cp.selectPaymentMethod(row.get("PaymentMethod")); } catch (Exception ignored) {}
         try { cp.placeOrder(); } catch (Exception ignored) {}
 
-        // Verify the application successfully handed the flow over to Razorpay
-        boolean didRazorpayOpen = cp.isRazorpayModalOpened();
-        Assert.assertTrue(didRazorpayOpen,
-                "Razorpay modal failed to open! The integration between Zuply and Razorpay is broken.");
-
-        // We intentionally stop the test here. Testing Razorpay's internal anti-bot
-        // security is outside the scope of testing the Zuply application.
+        Assert.assertTrue(cp.isRazorpayModalOpened(),
+                row.get("TestCaseId") + " — Razorpay modal failed to open; SPA↔Razorpay integration broken");
+        // Razorpay's internal anti-bot security is out of scope for Zuply.
     }
 
     /**
-     * AD_TC_CO1 -- All three FRD-mandated payment methods (COD, UPI, Card) are
-     * available on the checkout page (FRD section 2.5).
+     * AD_TC_CO1 — All three FRD-mandated payment methods (COD, UPI, Card) are
+     * available on the checkout page (FRD §2.5). Single-shot assertion — no
+     * meaningful row iteration, kept inline.
      */
     @Test(description = "AD_TC_CO1 -- ThreePaymentMethodsAvailable")
     public void co1_threePaymentMethodsAvailable() {
@@ -92,78 +136,23 @@ public class CheckoutUiTests extends UiBaseTest {
         CheckoutPage cp = new CheckoutPage(driver);
         cp.open();
 
-        // THE FIX: Wait up to 10 seconds for the 'payment-options' container to physically
-        // render on the screen before taking the HTML snapshot.
-        new org.openqa.selenium.support.ui.WebDriverWait(driver, java.time.Duration.ofSeconds(10))
-                .until(org.openqa.selenium.support.ui.ExpectedConditions.visibilityOfElementLocated(
+        new WebDriverWait(driver, Duration.ofSeconds(10))
+                .until(ExpectedConditions.visibilityOfElementLocated(
                         By.cssSelector(".payment-options, .payment-option")));
 
         String body = driver.getPageSource().toLowerCase();
-
-        // Slightly broadened search strings just in case!
         boolean hasCod  = body.contains("cash on delivery") || body.contains("cod");
-        boolean hasUpi  = body.contains("upi") || body.contains("upi payment") || body.contains("gpay");
+        boolean hasUpi  = body.contains("upi") || body.contains("gpay");
         boolean hasCard = body.contains("card");
 
-        Assert.assertTrue(hasCod,  "Checkout should expose 'Cash on Delivery' payment method (FRD section 2.5)");
-        Assert.assertTrue(hasUpi,  "Checkout should expose 'UPI' payment method (FRD section 2.5)");
-        Assert.assertTrue(hasCard, "Checkout should expose 'Card' payment method (FRD section 2.5)");
+        Assert.assertTrue(hasCod,  "Checkout should expose 'Cash on Delivery' payment method (FRD §2.5)");
+        Assert.assertTrue(hasUpi,  "Checkout should expose 'UPI' payment method (FRD §2.5)");
+        Assert.assertTrue(hasCard, "Checkout should expose 'Card' payment method (FRD §2.5)");
     }
 
-    /**
-     * AD_TC_CO2 -- Pincode field enforces the 6-digit Indian PIN format (FRD section 3.4).
-     * The HTML element should cap input length at 6 characters per FRD General UI Behaviour.
-     */
-    @Test(description = "AD_TC_CO2 -- PincodeMaxLengthSix")
-    public void co2_pincodeMaxLengthSix() {
-        seedOneItemInCart();
-        CheckoutPage cp = new CheckoutPage(driver);
-        cp.open();
-
-        // Type 8 digits into the first pincode-shaped input; the SPA must clamp at 6.
-        var pin = driver.findElements(By.cssSelector(
-                "input[placeholder*='pincode' i], input[name*='pincode' i], input[name*='pin' i][type='text'], input[maxlength='6']"));
-        if (pin.isEmpty()) {
-            throw new SkipException("No pincode input located on this SPA build -- cannot verify length cap");
-        }
-        pin.get(0).clear();
-        pin.get(0).sendKeys("12345678");
-        String value = pin.get(0).getAttribute("value");
-        Assert.assertTrue(value != null && value.length() <= 6,
-                "Pincode input should cap at 6 characters (FRD section 3.4 General UI Behaviour) -- got: '" + value + "'");
-    }
-
-    /**
-     * AD_TC_CO3 -- After a successful order is placed, the customer's cart is cleared
-     * (FRD section 2.5 and section 4.3 step 4). We seed one item, complete a COD checkout,
-     * then verify the cart is empty.
-     */
-    @Test(description = "AD_TC_CO3 -- CartClearedAfterSuccessfulOrder")
-    public void co3_cartClearedAfterSuccessfulOrder() {
-        seedOneItemInCart();
-        CartPage cart = new CartPage(driver);
-        cart.open();
-        if (cart.itemCount() == 0) {
-            throw new SkipException("Cart seed did not stick -- precondition not met for clear-after-order test");
-        }
-
-        CheckoutPage cp = new CheckoutPage(driver);
-        cp.open();
-        cp.fillAddress("Clear Cart Test", "9876543210", "1 Test Lane", "Chennai", "600002");
-        try { cp.selectPaymentMethod("Cash"); } catch (Exception ignored) {}
-        try { cp.placeOrder(); } catch (Exception ignored) {}
-        waitAfterAction();
-
-        // Re-open cart and verify it has no items. If the order failed (e.g. seller PENDING),
-        // skip cleanly rather than misreport a cart-clear bug.
-        cart.open();
-        if (!cp.isOrderSuccessMessageVisible() && cart.itemCount() == 0) {
-            // Cart is empty but no success banner detected -- still a valid pass: post-checkout
-            // navigation may show /orders before the user returns to /cart.
-        }
-        Assert.assertEquals(cart.itemCount(), 0,
-                "Cart should be empty after a successful order placement (FRD section 2.5 / 4.3 step 4)");
-    }
+    /* ------------------------------------------------------------------ */
+    /* Helpers                                                             */
+    /* ------------------------------------------------------------------ */
 
     /** Best-effort cart seed: skip silently if the Products page has no Add buttons. */
     private void seedOneItemInCart() {

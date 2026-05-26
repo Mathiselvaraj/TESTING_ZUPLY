@@ -6,7 +6,6 @@ import org.openqa.selenium.WebDriver;
 import org.openqa.selenium.WebElement;
 import org.openqa.selenium.support.ui.ExpectedConditions;
 
-import java.time.Duration;
 import java.util.List;
 
 /** Registration page at {@code /register}. */
@@ -39,11 +38,15 @@ public class RegisterPage extends BasePage {
     @Override public String route() { return "/register"; }
     @Override protected By readyMarker() { return REGISTER_BTN; }
 
-    public RegisterPage enterName(String name)       { type(NAME, name); return this; }
-    public RegisterPage enterEmail(String email)     { type(EMAIL, email); return this; }
-    public RegisterPage enterPhone(String phone)     { type(PHONE, phone); return this; }
-    public RegisterPage enterPassword(String pwd)    { type(PASSWORD, pwd); return this; }
-    public RegisterPage enterStoreName(String store) { type(STORE_NAME, store); return this; }
+    // Every enter*() calls type() then verifies the input.value caught the
+    // typed string. Defends against the Selenium-vs-Angular-rerender race
+    // that occasionally drops characters and leaves the form invalid (which
+    // keeps the register button [disabled] indefinitely).
+    public RegisterPage enterName(String name)       { type(NAME, name);          waitForInputValue(NAME, name);          return this; }
+    public RegisterPage enterEmail(String email)     { type(EMAIL, email);        waitForInputValue(EMAIL, email);        return this; }
+    public RegisterPage enterPhone(String phone)     { type(PHONE, phone);        waitForInputValue(PHONE, phone);        return this; }
+    public RegisterPage enterPassword(String pwd)    { type(PASSWORD, pwd);       waitForInputValue(PASSWORD, pwd);       return this; }
+    public RegisterPage enterStoreName(String store) { type(STORE_NAME, store);   waitForInputValue(STORE_NAME, store);   return this; }
     public RegisterPage selectRole(Role role) {
         // Wait for at least one role button to render so we don't iterate an empty list.
         wait.until(ExpectedConditions.presenceOfElementLocated(ROLE_BTNS));
@@ -63,15 +66,37 @@ public class RegisterPage extends BasePage {
     }
 
     /**
-     * Submit the register form. Waits up to 20s for the [disabled] binding on
-     * button.register-btn to flip — Angular's async email-uniqueness validator
-     * exceeds the default 10s wait on Render cold-starts. Falls back to a JS
-     * click if an overlay intercepts the native click.
+     * Submit the register form.
+     *
+     * Pre-flight: confirm every required field actually carries a value before
+     * waiting on the [disabled] binding. Without this, a blank field (caused
+     * by a Selenium sendKeys race) leaves the form invalid and we time out at
+     * 25s on a button that never enables. The pre-flight runs in milliseconds
+     * when typing succeeded; it only fires the diagnostic path when the
+     * verified type() couldn't recover the value.
+     *
+     * Waits up to {@code DEFAULT_WAIT} (25s) for the [disabled] binding to flip
+     * — Angular's async email-uniqueness validator exceeds shorter waits on
+     * Render cold-starts. Falls back to a JS click if an overlay intercepts.
      */
     public void submit() {
-        WebElement btn = waitClickable(REGISTER_BTN, Duration.ofSeconds(20));
+        assertFieldNotBlank(NAME,     "name");
+        assertFieldNotBlank(EMAIL,    "email");
+        assertFieldNotBlank(PHONE,    "phone");
+        assertFieldNotBlank(PASSWORD, "password");
+        WebElement btn = waitClickable(REGISTER_BTN, DEFAULT_WAIT);
         try { btn.click(); }
         catch (org.openqa.selenium.ElementClickInterceptedException e) { jsClick(btn); }
+    }
+
+    private void assertFieldNotBlank(By by, String fieldName) {
+        if (driver.findElements(by).isEmpty()) return; // optional fields (e.g. STORE_NAME) may be absent
+        String v = driver.findElement(by).getDomProperty("value");
+        if (v == null || v.isBlank()) {
+            throw new IllegalStateException(
+                    "RegisterPage." + fieldName + " field is blank at submit — sendKeys did not stick. "
+                    + "Aborting before the 25s disabled-button timeout.");
+        }
     }
 
     public void registerAs(String name, String email, String phone, String password, Role role) {
