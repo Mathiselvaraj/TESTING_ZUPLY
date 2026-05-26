@@ -35,7 +35,7 @@ public class CheckoutUiTests extends UiBaseTest {
     @BeforeClass(alwaysRun = true, dependsOnMethods = "launchBrowser")
     public void loginBuyer() {
         buyerEmail = registerNewCustomer("Checkout");
-        loginViaUi(buyerEmail, "Test@1234");
+        loginViaUi(buyerEmail, defaultPassword());
     }
 
     /* ------------------------------------------------------------------ */

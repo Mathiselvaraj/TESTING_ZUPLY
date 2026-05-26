@@ -2,6 +2,7 @@ package com.cts.mfrp.zuply.tests.ui.ai;
 
 import com.cts.mfrp.zuply.base.UiBaseTest;
 import com.cts.mfrp.zuply.pages.SellerUploadPage;
+import com.cts.mfrp.zuply.utils.ExcelUtils;
 import org.openqa.selenium.By;
 import org.openqa.selenium.support.ui.WebDriverWait;
 import org.testng.Assert;
@@ -19,6 +20,7 @@ import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.time.Duration;
+import java.util.Map;
 
 /**
  * AI-powered listing pipeline — FRD §2.10 (Product Upload) + §4.2 (AI flow) + §3.1 (perf).
@@ -36,16 +38,23 @@ import java.time.Duration;
 @Test(groups = {"regression", "ui", "ai"})
 public class AIListingUiTests extends UiBaseTest {
 
+    private static final String DATA_FILE = "src/test/resources/testdata/UI_ProductData.xlsx";
+    private static final String SHEET     = "AIListing";
+
     private static final Duration UPLOAD_SETTLE = Duration.ofSeconds(10);
     private static final Duration AI_CONTENT    = Duration.ofSeconds(30);
     private static final Duration E2E_LIMIT     = Duration.ofSeconds(90);
+
+    private Map<String, String> data(String testCaseId) throws IOException {
+        return ExcelUtils.getRowByTestCaseId(DATA_FILE, SHEET, testCaseId);
+    }
 
     private String sellerEmail;
 
     @BeforeClass(alwaysRun = true, dependsOnMethods = "launchBrowser")
     public void loginSeller() {
         sellerEmail = registerNewSeller("AISeller");
-        loginViaUi(sellerEmail, "Test@1234");
+        loginViaUi(sellerEmail, defaultPassword());
     }
 
     @BeforeMethod(alwaysRun = true)
@@ -53,13 +62,17 @@ public class AIListingUiTests extends UiBaseTest {
         navigateRoute("/seller/dashboard");
     }
 
-    /** Helper to mimic the exact user flow shown in the UI */
-    private void setupAndGenerate(SellerUploadPage page) throws IOException {
+    /**
+     * Helper to mimic the exact user flow shown in the UI. Stock / delivery /
+     * return values come from the AIListing sheet so each test scenario can
+     * tweak its inputs without code edits.
+     */
+    private void setupAndGenerate(SellerUploadPage page, Map<String, String> row) throws IOException {
         page.selectAiMode();
         page.uploadImage(generateJpeg(400, 400));
-        page.enterStock("10");
-        page.selectOptionByText("Home Delivery");
-        page.selectOptionByText("No Returns");
+        page.enterStock(row.get("Stock"));
+        page.selectOptionByText(row.get("DeliveryOption"));
+        page.selectOptionByText(row.get("ReturnOption"));
         page.clickGenerate();
     }
 
@@ -101,7 +114,7 @@ public class AIListingUiTests extends UiBaseTest {
     public void tc031_aiContentGeneration() throws IOException {
         SellerUploadPage page = new SellerUploadPage(driver);
         page.open();
-        setupAndGenerate(page);
+        setupAndGenerate(page, data("TC031"));
 
         waitForAiOrFail(page, AI_CONTENT);
         Assert.assertFalse(page.generatedTitle().isBlank(), "Title should be non-empty");
@@ -111,7 +124,7 @@ public class AIListingUiTests extends UiBaseTest {
     public void tc032_tagGeneration() throws IOException {
         SellerUploadPage page = new SellerUploadPage(driver);
         page.open();
-        setupAndGenerate(page);
+        setupAndGenerate(page, data("TC032"));
 
         waitForAiOrFail(page, AI_CONTENT);
         int tags = page.tagCount();
@@ -122,7 +135,7 @@ public class AIListingUiTests extends UiBaseTest {
     public void tc033_categoryAutoAssign() throws IOException {
         SellerUploadPage page = new SellerUploadPage(driver);
         page.open();
-        setupAndGenerate(page);
+        setupAndGenerate(page, data("TC033"));
 
         waitForAiOrFail(page, AI_CONTENT);
         Assert.assertFalse(page.selects().isEmpty(), "No category select rendered");
@@ -133,7 +146,7 @@ public class AIListingUiTests extends UiBaseTest {
     public void tc034_highlightGeneration() throws IOException {
         SellerUploadPage page = new SellerUploadPage(driver);
         page.open();
-        setupAndGenerate(page);
+        setupAndGenerate(page, data("TC034"));
 
         waitForAiOrFail(page, AI_CONTENT);
         int highlights = page.highlightCount();
@@ -144,7 +157,7 @@ public class AIListingUiTests extends UiBaseTest {
     public void tc035_listingPreviewDisplay() throws IOException {
         SellerUploadPage page = new SellerUploadPage(driver);
         page.open();
-        setupAndGenerate(page);
+        setupAndGenerate(page, data("TC035"));
 
         waitForAiOrFail(page, AI_CONTENT);
         Assert.assertTrue(page.isLoaded(), "Preview should be visible");
@@ -154,11 +167,12 @@ public class AIListingUiTests extends UiBaseTest {
     public void tc036_listingEditing() throws IOException {
         SellerUploadPage page = new SellerUploadPage(driver);
         page.open();
-        setupAndGenerate(page);
+        Map<String, String> row = data("TC036");
+        setupAndGenerate(page, row);
 
         waitForAiOrFail(page, AI_CONTENT);
-        page.enterTitle("Premium Basmati Rice 1kg");
-        page.enterPrice("299");
+        page.enterTitle(row.get("Title"));
+        page.enterPrice(row.get("Price"));
         Assert.assertTrue(page.isLoaded(), "Page should remain usable");
     }
 
@@ -166,7 +180,7 @@ public class AIListingUiTests extends UiBaseTest {
     public void tc037_publishListing() throws IOException {
         SellerUploadPage page = new SellerUploadPage(driver);
         page.open();
-        setupAndGenerate(page);
+        setupAndGenerate(page, data("TC037"));
 
         waitForAiOrFail(page, AI_CONTENT);
 
@@ -182,7 +196,7 @@ public class AIListingUiTests extends UiBaseTest {
         page.open();
 
         long start = System.currentTimeMillis();
-        setupAndGenerate(page);
+        setupAndGenerate(page, data("TC038"));
         waitForAiOrFail(page, E2E_LIMIT);
         page.submitForReview();
 

@@ -71,12 +71,21 @@ public class HomePageUiTests extends UiBaseTest {
                 "Products page should display all 8 FRD categories (§2.2). Missing: " + missing);
     }
 
-    /** AD_TC_HP2 — Top section components: search bar, location selector. */
+    /**
+     * AD_TC_HP2 — Top section components: search bar, location selector.
+     *
+     * The location-selector locator covers every shape the SPA has used across
+     * builds: a {@code .location-selector}/{@code [class*='location']} widget,
+     * a select named "location", or any input whose placeholder mentions
+     * location/pincode/city/area/deliver. Also accepts a {@code <button>} or
+     * {@code <span>} carrying the visible text "Deliver to" — the SPA currently
+     * renders the picker that way.
+     */
     @Test(description = "AD_TC_HP2 -- HomePageTopBarComponents")
     public void hp2_homePageTopBarComponents() {
         new ProductsPage(driver).open();
 
-        WebDriverWait wait = new WebDriverWait(driver, Duration.ofSeconds(10));
+        WebDriverWait wait = new WebDriverWait(driver, Duration.ofSeconds(25));
 
         boolean hasSearch = false;
         try {
@@ -85,10 +94,23 @@ public class HomePageUiTests extends UiBaseTest {
             hasSearch = true;
         } catch (Exception ignored) {}
 
-        boolean hasLocation = !driver.findElements(By.cssSelector(
-                ".location-selector, [class*='location'], select[name*='location' i], input[placeholder*='location' i], input[placeholder*='pincode' i]")).isEmpty();
+        boolean hasLocationCss = !driver.findElements(By.cssSelector(
+                ".location-selector, [class*='location'], "
+                + "select[name*='location' i], "
+                + "input[placeholder*='location' i], input[placeholder*='pincode' i], "
+                + "input[placeholder*='city' i], input[placeholder*='area' i], "
+                + "input[placeholder*='deliver' i], "
+                + "[class*='pincode'], [class*='delivery']")).isEmpty();
 
-        Assert.assertTrue(hasSearch,   "Page should expose a product search bar (FRD §2.2)");
-        Assert.assertTrue(hasLocation, "Page should expose a location selector (FRD §2.2)");
+        boolean hasLocationByText = !driver.findElements(By.xpath(
+                "//*[self::button or self::span or self::div or self::a]"
+                + "[contains(translate(., 'ABCDEFGHIJKLMNOPQRSTUVWXYZ', 'abcdefghijklmnopqrstuvwxyz'), 'deliver to')"
+                + " or contains(translate(., 'ABCDEFGHIJKLMNOPQRSTUVWXYZ', 'abcdefghijklmnopqrstuvwxyz'), 'pincode')"
+                + " or contains(translate(., 'ABCDEFGHIJKLMNOPQRSTUVWXYZ', 'abcdefghijklmnopqrstuvwxyz'), 'select location')]"))
+                .isEmpty();
+
+        Assert.assertTrue(hasSearch, "Page should expose a product search bar (FRD §2.2)");
+        Assert.assertTrue(hasLocationCss || hasLocationByText,
+                "Page should expose a location selector (FRD §2.2) — checked CSS + text fallbacks");
     }
 }

@@ -21,7 +21,7 @@ public class SecurityUiTests extends UiBaseTest {
     @BeforeClass(alwaysRun = true, dependsOnMethods = "launchBrowser")
     public void loginBuyer() {
         buyerEmail = registerNewCustomer("RbacUser");
-        loginViaUi(buyerEmail, "Test@1234");
+        loginViaUi(buyerEmail, defaultPassword());
     }
 
     /** TC039 — A Customer cannot reach /admin or /seller routes; routes redirect to /login. */

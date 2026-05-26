@@ -24,7 +24,7 @@ public class OrderTrackingUiTests extends UiBaseTest {
     /** TC017 — Customer can view their order history. */
     @Test(description = "TC017 — OrderHistory")
     public void tc017_orderHistory() {
-        loginViaUi(buyerEmail, "Test@1234");
+        loginViaUi(buyerEmail, defaultPassword());
 
         OrdersPage page = new OrdersPage(driver);
         page.open();

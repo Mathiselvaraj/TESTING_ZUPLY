@@ -19,7 +19,7 @@ public class CustomerProfileUiTests extends UiBaseTest {
     @BeforeClass(alwaysRun = true, dependsOnMethods = "launchBrowser")
     public void loginBuyer() {
         buyerEmail = registerNewCustomer("Profile");
-        loginViaUi(buyerEmail, "Test@1234");
+        loginViaUi(buyerEmail, defaultPassword());
     }
 
     /** TC019 — Customer can view profile information. */

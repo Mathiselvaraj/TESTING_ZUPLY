@@ -112,6 +112,26 @@ public final class ExcelUtils {
         }
     }
 
+    /**
+     * Look up a single row by its {@code TestCaseId} column value. Returns the
+     * first match (case-insensitive). Throws {@link IllegalArgumentException}
+     * when no row matches — callers should treat that as a missing-fixture bug,
+     * not a runtime branch.
+     *
+     * Convenience for tests that need a single fixture row per method instead
+     * of iterating an entire sheet via {@code @DataProvider}.
+     */
+    public static Map<String, String> getRowByTestCaseId(
+            String filePath, String sheetName, String testCaseId) throws IOException {
+        for (Map<String, String> row : getTestDataAsMaps(filePath, sheetName)) {
+            if (testCaseId.equalsIgnoreCase(row.getOrDefault("TestCaseId", ""))) {
+                return row;
+            }
+        }
+        throw new IllegalArgumentException(
+                "No row with TestCaseId=" + testCaseId + " in " + filePath + " sheet " + sheetName);
+    }
+
     private static Sheet requireSheet(Workbook wb, String name) {
         Sheet s = wb.getSheet(name);
         if (s == null) {

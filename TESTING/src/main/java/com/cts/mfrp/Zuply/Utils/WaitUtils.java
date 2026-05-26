@@ -20,8 +20,13 @@ import java.time.Duration;
  */
 public final class WaitUtils {
 
-    /** Default wait window — long enough for Render cold-starts, short enough to fail fast. */
-    public static final Duration DEFAULT_TIMEOUT = Duration.ofSeconds(15);
+    /**
+     * Default wait window — bumped from 15s to 25s alongside the BasePage default
+     * after TimeoutException churn on Angular reactive-form submit buttons (the
+     * [disabled] binding flips on async validators that can be slow on Render
+     * cold-starts). Callers can still pass a custom Duration to the overloads.
+     */
+    public static final Duration DEFAULT_TIMEOUT = Duration.ofSeconds(25);
 
     private WaitUtils() {}
 

@@ -21,7 +21,7 @@ public class CartUiTests extends UiBaseTest {
     @BeforeClass(alwaysRun = true, dependsOnMethods = "launchBrowser")
     public void loginBuyer() {
         buyerEmail = registerNewCustomer("Cart");
-        loginViaUi(buyerEmail, "Test@1234");
+        loginViaUi(buyerEmail, defaultPassword());
     }
 
     /** TC013 — Add a product to the cart. */

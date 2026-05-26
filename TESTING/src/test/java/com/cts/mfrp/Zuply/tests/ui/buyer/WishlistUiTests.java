@@ -21,7 +21,7 @@ public class WishlistUiTests extends UiBaseTest {
     @BeforeClass(alwaysRun = true, dependsOnMethods = "launchBrowser")
     public void loginBuyer() {
         buyerEmail = registerNewCustomer("WishUser");
-        loginViaUi(buyerEmail, "Test@1234");
+        loginViaUi(buyerEmail, defaultPassword());
     }
 
     /**
@@ -34,11 +34,16 @@ public class WishlistUiTests extends UiBaseTest {
     @Test(description = "TC020 — WishlistToggleRemovesItem [BUG]")
     public void tc020_wishlistToggleRemovesItem() {
         clearSession();
-        loginViaUi(buyerEmail, "Test@1234");
+        loginViaUi(buyerEmail, defaultPassword());
         wait.until(ExpectedConditions.visibilityOfElementLocated(By.cssSelector(".account-btn")));
 
         // First click — add the item to wishlist
         new ProductsPage(driver).open();
+        // Explicit wait for backend-driven product render before we read the card list.
+        // Without this, a slow products API response leaves us with an empty findElements
+        // result and a misleading "No product cards found" assertion failure.
+        wait.until(ExpectedConditions.numberOfElementsToBeMoreThan(
+                By.cssSelector(".card-body, .card-name"), 0));
         var cards = driver.findElements(By.cssSelector(".card-body, .card-name"));
         Assert.assertFalse(cards.isEmpty(), "No product cards found on products page");
         cards.get(0).click();
@@ -60,6 +65,8 @@ public class WishlistUiTests extends UiBaseTest {
 
         // Second click on the same product — should toggle-remove the item
         new ProductsPage(driver).open();
+        wait.until(ExpectedConditions.numberOfElementsToBeMoreThan(
+                By.cssSelector(".card-body, .card-name"), 0));
         cards = driver.findElements(By.cssSelector(".card-body, .card-name"));
         Assert.assertFalse(cards.isEmpty(), "No product cards found (second visit)");
         cards.get(0).click();

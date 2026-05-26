@@ -7,12 +7,15 @@ import com.cts.mfrp.zuply.pages.SellerOrdersPage;
 import com.cts.mfrp.zuply.pages.SellerProductsPage;
 import com.cts.mfrp.zuply.pages.SellerUploadPage;
 import com.cts.mfrp.zuply.pages.SellersListingPage;
+import com.cts.mfrp.zuply.utils.ExcelUtils;
 import org.testng.Assert;
 import org.testng.SkipException;
 import org.testng.annotations.BeforeClass;
 import org.testng.annotations.Test;
 
+import java.io.IOException;
 import java.time.Duration;
+import java.util.Map;
 
 /**
  * Seller product management — FRD §2.10. Maps to TC020–TC031.
@@ -28,28 +31,37 @@ import java.time.Duration;
 @Test(groups = {"regression", "ui", "seller"})
 public class SellerProductUiTests extends UiBaseTest {
 
+    private static final String DATA_FILE = "src/test/resources/testdata/UI_ProductData.xlsx";
+    private static final String SHEET     = "SellerUpload";
+
     private String sellerEmail;
+
+    private Map<String, String> data(String testCaseId) throws IOException {
+        return ExcelUtils.getRowByTestCaseId(DATA_FILE, SHEET, testCaseId);
+    }
 
     @BeforeClass(alwaysRun = true, dependsOnMethods = "launchBrowser")
     public void loginSeller() {
         sellerEmail = registerNewSeller("SellerCreate");
-        ensureLoggedIn(sellerEmail, "Test@1234");
+        ensureLoggedIn(sellerEmail, defaultPassword());
     }
 
     /** TC020 — Seller can create a product listing with all required fields. */
     @Test(description = "TC020 — SellerCreateProduct")
-    public void tc020_sellerCreateProduct() {
+    public void tc020_sellerCreateProduct() throws IOException {
+        Map<String, String> row = data("TC020");
+
         SellerUploadPage upload = new SellerUploadPage(driver);
         upload.open();
         Assert.assertTrue(upload.isLoaded(), "Add Product page should be visible");
 
-        // The seller will be PENDING until admin approves; we just verify the form is
-        // navigable and submittable. Backend may reject if seller isn't approved.
+        // Title prefix from Excel; randomSuffix() stays inline because it's the
+        // dynamic-uniqueness piece of the hybrid data strategy.
         try {
-            upload.enterTitle("UI Test Rice " + randomSuffix())
-                  .enterDescription("1 kg pack, organic")
-                  .enterPrice("80")
-                  .enterStock("100");
+            upload.enterTitle(row.get("TitlePrefix") + " " + randomSuffix())
+                  .enterDescription(row.get("ProductDescription"))
+                  .enterPrice(row.get("Price"))
+                  .enterStock(row.get("Stock"));
         } catch (Exception e) {
             throw new SkipException("Form fields may not match current SPA build: " + e.getMessage());
         }
@@ -62,7 +74,7 @@ public class SellerProductUiTests extends UiBaseTest {
     public void tc021_sellerEditDeleteProduct() {
         clearSession();
         String sellerBEmail = registerNewSeller("SellerB");
-        ensureLoggedIn(sellerBEmail, "Test@1234");
+        ensureLoggedIn(sellerBEmail, defaultPassword());
 
         SellerProductsPage page = new SellerProductsPage(driver);
         page.open();
@@ -139,7 +151,7 @@ public class SellerProductUiTests extends UiBaseTest {
     public void tc026_sellerProductsEmptyForNewSeller() {
         clearSession();
         String freshSeller = registerNewSeller("SellerEmpty");
-        ensureLoggedIn(freshSeller, "Test@1234");
+        ensureLoggedIn(freshSeller, defaultPassword());
 
         SellerProductsPage products = new SellerProductsPage(driver);
         products.open();
@@ -162,16 +174,18 @@ public class SellerProductUiTests extends UiBaseTest {
     }
 
     @Test(description = "TC028 [POSITIVE] — SellerUploadFormFieldsPresent")
-    public void tc028_sellerUploadFormFieldsPresent() {
+    public void tc028_sellerUploadFormFieldsPresent() throws IOException {
+        Map<String, String> row = data("TC028");
+
         SellerUploadPage upload = new SellerUploadPage(driver);
         upload.open();
         Assert.assertTrue(upload.isLoaded(), "Add Product page should be visible");
 
         try {
-            upload.enterTitle("Smoke Title " + randomSuffix())
-                  .enterDescription("Smoke description text for automated test")
-                  .enterPrice("99")
-                  .enterStock("10");
+            upload.enterTitle(row.get("TitlePrefix") + " " + randomSuffix())
+                  .enterDescription(row.get("ProductDescription"))
+                  .enterPrice(row.get("Price"))
+                  .enterStock(row.get("Stock"));
         } catch (Exception e) {
             throw new SkipException("One or more form fields not found — SPA build may differ: " + e.getMessage());
         }
