@@ -7,7 +7,7 @@
     </listeners>
 
     <!-- Pass headless=false at runtime (-Dheadless=false) to watch tests run. -->
-    <parameter name="headless" value="true"/>
+    <parameter name="headless" value="false"/>
 
     <test name="Authentication UI (TC001-TC005)">
         <classes><class name="com.cts.mfrp.zuply.tests.ui.auth.AuthUiTests"/></classes>
