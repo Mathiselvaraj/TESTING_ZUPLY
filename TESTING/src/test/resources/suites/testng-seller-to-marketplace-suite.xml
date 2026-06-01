@@ -48,7 +48,8 @@
     BasePage. No Thread.sleep anywhere. Excel data is auto-materialized at
     JVM startup by UiBaseTest's static initializer (UiTestDataAugmenter.run()).
 
-  Override headless mode for debugging: -Dheadless=false
+  Default headless mode: visible Chrome (value="false"). Switch to background
+  mode in CI by passing -Dheadless=true at the command line.
 -->
 <suite name="Zuply E2E — Seller to Marketplace (existing methods)"
        verbose="1"
@@ -59,7 +60,7 @@
         <listener class-name="com.cts.mfrp.zuply.utils.ExtentReportListener"/>
     </listeners>
 
-    <parameter name="headless" value="true"/>
+    <parameter name="headless" value="false"/>
 
     <!-- ─────────────────────────────────────────────────────────────────── -->
     <!-- Step 1 — Seller Registration                                          -->
