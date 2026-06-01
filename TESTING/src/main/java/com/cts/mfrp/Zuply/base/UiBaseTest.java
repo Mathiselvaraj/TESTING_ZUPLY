@@ -24,9 +24,9 @@ import java.util.Map;
 import java.util.UUID;
 
 /**
- * Shared base for all UI tests. Spins up a fresh Chrome (headless by default,
- * toggle via {@code -Dheadless=false}) before each test method and tears it
- * down afterwards. Exposes auth shortcuts (admin/customer/seller).
+ * Shared base for all UI tests. Spins up a fresh visible Chrome by default
+ * (toggle to background mode via {@code -Dheadless=true}) before each test
+ * method and tears it down afterwards. Exposes auth shortcuts (admin/customer/seller).
  *
  * UI tests target https://zuply.netlify.app/. The SPA is Angular 18; Netlify
  * does NOT provide SPA fallback routing, so we always boot at "/" and let the
@@ -106,7 +106,7 @@ public abstract class UiBaseTest {
 
     @BeforeClass(alwaysRun = true)
     @Parameters({"headless"})
-    public void launchBrowser(@Optional("true") String headless) {
+    public void launchBrowser(@Optional("false") String headless) {
         driver = DriverFactory.create(Boolean.parseBoolean(headless));
         DriverFactory.setDriver(driver);
         wait = new WebDriverWait(driver, DEFAULT_WAIT);

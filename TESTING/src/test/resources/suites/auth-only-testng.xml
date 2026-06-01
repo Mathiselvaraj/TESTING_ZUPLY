@@ -4,7 +4,7 @@
     <listeners>
         <listener class-name="com.cts.mfrp.zuply.utils.ExtentReportListener"/>
     </listeners>
-    <parameter name="headless" value="true"/>
+    <parameter name="headless" value="false"/>
     <parameter name="report.subdir" value="ui"/>
     <test name="Auth UI verify">
         <classes><class name="com.cts.mfrp.zuply.tests.ui.auth.AuthUiTests"/></classes>
