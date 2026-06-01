@@ -10,8 +10,7 @@ import java.io.File;
 /**
  * Singleton ExtentReports + per-thread ExtentTest holder.
  *
- * The output path is segmented by suite type (api / ui / misc) so API and UI
- * runs never overwrite each other. Call {@link #setSubdir(String)} BEFORE the
+ * The output path is segmented by suite type (ui / misc). Call {@link #setSubdir(String)} BEFORE the
  * first {@link #get()} (the listener does this from ISuiteListener.onStart).
  */
 public final class ExtentManager {

@@ -41,7 +41,9 @@ public final class DriverFactory {
         // AI listing tests.
         opts.setPageLoadStrategy(org.openqa.selenium.PageLoadStrategy.EAGER);
         WebDriver d = new ChromeDriver(opts);
-        d.manage().timeouts().implicitlyWait(Duration.ofSeconds(5));
+        // Do NOT set implicitlyWait — mixing implicit + explicit waits causes
+        // non-deterministic behaviour in Selenium. All waits use WebDriverWait
+        // (explicit) exclusively. See Selenium docs for rationale.
         d.manage().timeouts().pageLoadTimeout(Duration.ofSeconds(90));
         return d;
     }

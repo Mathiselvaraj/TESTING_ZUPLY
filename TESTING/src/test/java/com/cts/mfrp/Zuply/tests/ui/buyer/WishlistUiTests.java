@@ -6,6 +6,7 @@ import com.cts.mfrp.zuply.pages.WishlistPage;
 import org.openqa.selenium.By;
 import org.openqa.selenium.support.ui.ExpectedConditions;
 import org.testng.Assert;
+import org.testng.SkipException;
 import org.testng.annotations.BeforeClass;
 import org.testng.annotations.Test;
 
@@ -31,9 +32,13 @@ public class WishlistUiTests extends UiBaseTest {
      * to toggle (add/remove) but silently fails on the second click. Expected
      * to FAIL until the application bug is fixed.
      */
+    /**
+     * TC020 — Re-clicking the Wishlist button should remove the item (toggle).
+     * BUG-CONFIRMATION: re-click does NOT remove the item — expected to FAIL
+     * until the application bug is fixed.
+     */
     @Test(description = "TC020 — WishlistToggleRemovesItem [BUG]")
     public void tc020_wishlistToggleRemovesItem() {
-        clearSession();
         loginViaUi(buyerEmail, defaultPassword());
         wait.until(ExpectedConditions.visibilityOfElementLocated(By.cssSelector(".account-btn")));
 

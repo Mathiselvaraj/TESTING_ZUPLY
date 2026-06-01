@@ -5,6 +5,7 @@ import com.cts.mfrp.zuply.base.UiBaseTest;
 import com.cts.mfrp.zuply.pages.SellerUploadPage;
 import com.cts.mfrp.zuply.utils.ExcelUtils;
 import org.testng.Assert;
+import org.testng.SkipException;
 import org.testng.annotations.BeforeClass;
 import org.testng.annotations.Test;
 
@@ -39,6 +40,13 @@ public class ImageUploadUiTests extends UiBaseTest {
     public void loginSeller() {
         sellerEmail = registerNewSeller("UploadSeller");
         loginViaUi(sellerEmail, defaultPassword());
+        // Skip all upload tests if seller is pending admin approval
+        String url = driver.getCurrentUrl();
+        if (url != null && (url.contains("/login") || url.contains("/register") || url.contains("pending"))) {
+            throw new SkipException(
+                "Seller account is pending admin approval — all upload tests skipped. " +
+                "Approve the seller in the admin dashboard first.");
+        }
     }
 
     /** TC025 — Seller can upload a valid JPEG within the size limit. */

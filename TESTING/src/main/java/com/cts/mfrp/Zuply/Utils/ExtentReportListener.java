@@ -13,11 +13,10 @@ public class ExtentReportListener implements ITestListener, ISuiteListener {
 
     @Override
     public void onStart(ISuite suite) {
-        // Pick a report sub-directory before BaseTest's @BeforeSuite calls
-        // ExtentManager.get() and initialises the singleton. Suite XML may
-        // override via <parameter name="report.subdir" value="..."/>; otherwise
-        // we derive it from the suite name using word-boundary matching so
-        // "ui" inside "sUIte" (or "api" inside other words) doesn't false-match.
+        // Pick a report sub-directory before ExtentManager.get() initialises the
+        // singleton. Suite XML may override via <parameter name="report.subdir"
+        // value="..."/>; otherwise derive it from the suite name using
+        // word-boundary matching so "ui" inside "sUIte" doesn't false-match.
         String explicit = suite.getXmlSuite() != null
                 ? suite.getXmlSuite().getParameter("report.subdir") : null;
         if (explicit != null && !explicit.isBlank()) {

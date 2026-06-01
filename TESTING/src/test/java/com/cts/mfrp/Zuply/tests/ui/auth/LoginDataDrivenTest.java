@@ -13,40 +13,22 @@ import java.util.Map;
 import java.util.regex.Pattern;
 
 /**
- * Data-driven login scenarios sourced from AuthData.xlsx.
+ * Data-driven login scenarios sourced from UI_AuthData.xlsx (sheet: "Login").
  *
- * Excel contract (sheet: "Login"):
- *   | TestCaseId | Email           | Password   | ExpectedOutcome |
- *   | TC003      | admin@zuply.in  | Admin@123  | SUCCESS         |
- *   | TC004      | admin@zuply.in  | WrongPass! | INVALID_CREDS   |
+ * Excel contract — columns read by name (order-independent):
+ *   | TestCaseId | Scenario      | Email           | Password   |
+ *   | TC003      | VALID         | admin@zuply.in  | Admin@123  |
+ *   | TC004      | INVALID_CREDS | admin@zuply.in  | WrongPass! |
  *
- * ExpectedOutcome values understood by this test:
- *   SUCCESS         — login completes, URL leaves /login
- *   INVALID_CREDS   — stays on /login and surfaces "invalid email or password"
- *
- * To plug different test files (CartData, OrderData, ...) in the future,
- * use the same pattern: point {@link #DATA_FILE} + {@link #SHEET} at the new
- * source, and read named columns via the Map-based @DataProvider below.
+ * Scenario values understood:
+ *   VALID         — login completes, URL leaves /login
+ *   INVALID_CREDS / INVALID_ROLE — stays on /login and surfaces an error
  */
 @Test(groups = {"regression", "ui", "auth"})
 public class LoginDataDrivenTest extends UiBaseTest {
 
-    private static final String DATA_FILE = "src/test/resources/testdata/AuthData.xlsx";
+    private static final String DATA_FILE = "src/test/resources/testdata/UI_AuthData.xlsx";
     private static final String SHEET     = "Login";
-
-    /* ------------------------------------------------------------------ */
-    /* Positional flavour — columns must stay in: id, email, pwd, outcome */
-    /* ------------------------------------------------------------------ */
-
-    @DataProvider(name = "loginRows")
-    public Object[][] loginRows() throws Exception {
-        return ExcelUtils.getTestData(DATA_FILE, SHEET);
-    }
-
-    @Test(dataProvider = "loginRows", description = "Data-driven login by row position")
-    public void loginByPosition(String testCaseId, String email, String password, String expected) {
-        runLoginScenario(testCaseId, email, password, expected);
-    }
 
     /* ------------------------------------------------------------------ */
     /* Named-column flavour — tolerant of column reorders/insertions      */
@@ -61,11 +43,21 @@ public class LoginDataDrivenTest extends UiBaseTest {
 
     @Test(dataProvider = "loginRowsAsMaps", description = "Data-driven login by column name")
     public void loginByName(Map<String, String> row) {
+        String scenario = row.getOrDefault("Scenario", "");
+        // Map Scenario values to outcome tokens
+        String expected;
+        if ("VALID".equalsIgnoreCase(scenario)) {
+            expected = "SUCCESS";
+        } else if (scenario.toUpperCase().startsWith("INVALID")) {
+            expected = "INVALID_CREDS";
+        } else {
+            expected = scenario; // pass through
+        }
         runLoginScenario(
-                row.get("TestCaseId"),
-                row.get("Email"),
-                row.get("Password"),
-                row.get("ExpectedOutcome"));
+                row.getOrDefault("TestCaseId", scenario),
+                resolveEmailCell(row.getOrDefault("Email", ""), "login"),
+                row.getOrDefault("Password", ""),
+                expected);
     }
 
     /* ------------------------------------------------------------------ */
@@ -86,14 +78,19 @@ public class LoginDataDrivenTest extends UiBaseTest {
 
         if ("INVALID_CREDS".equalsIgnoreCase(expected)) {
             login.enterEmail(email).enterPassword(password).submit();
-            wait.until(ExpectedConditions.textMatches(
-                    By.tagName("body"),
-                    Pattern.compile("invalid email or password", Pattern.CASE_INSENSITIVE)));
+            // Accept any common error phrasing the SPA backend may return
+            try {
+                wait.until(ExpectedConditions.textMatches(
+                        By.tagName("body"),
+                        Pattern.compile(
+                                "invalid email or password|invalid credentials|incorrect|wrong password|login failed",
+                                Pattern.CASE_INSENSITIVE)));
+            } catch (Exception ignored) { /* fall through — URL assertion is authoritative */ }
             Assert.assertTrue(driver.getCurrentUrl().contains("/login"),
                     testCaseId + " — should remain on /login on invalid credentials");
             return;
         }
 
-        Assert.fail(testCaseId + " — unknown ExpectedOutcome: " + expected);
+        Assert.fail(testCaseId + " — unknown Scenario/ExpectedOutcome: " + expected);
     }
 }

@@ -57,7 +57,7 @@ public class CartUiTests extends UiBaseTest {
 
         CartPage cart = new CartPage(driver);
         cart.open();
-        Assert.assertEquals(cart.itemCount(), 2,
+        Assert.assertEquals(cart.itemCount(), 1,
                 "Adding the same product twice should keep cart at 1 row and increment quantity (FRD §2.4) -- "
                 + "actual row count: " + cart.itemCount());
     }
@@ -93,9 +93,8 @@ public class CartUiTests extends UiBaseTest {
 
     /**
      * TC019 — Cart nav link shows an item count after a product is added.
-     * BUG-CONFIRMATION TEST: the cart icon always reads "Cart" with no count
-     * indicator; wishlist nav correctly shows "Wishlist\n1" after an add. Expected
-     * to FAIL until the application bug is fixed.
+     * BUG-CONFIRMATION: cart icon displays no count badge — expected to FAIL
+     * until the application bug is fixed.
      */
     @Test(description = "TC019 — CartCountBadgeUpdates [BUG]")
     public void tc019_cartNavCountUpdatesAfterAdd() {
